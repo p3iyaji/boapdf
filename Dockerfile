@@ -30,7 +30,11 @@ RUN composer install \
     --no-autoloader \
     --prefer-dist \
     --no-interaction \
-    --no-progress
+    --no-progress \
+    --ignore-platform-req=ext-gd \
+    --ignore-platform-req=ext-imagick \
+    --ignore-platform-req=ext-pcntl \
+    --ignore-platform-req=ext-redis
 
 COPY . .
 
