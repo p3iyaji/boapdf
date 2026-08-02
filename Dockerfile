@@ -42,6 +42,7 @@ RUN composer dump-autoload \
 
 # -----------------------------------------------------------------------------
 # Stage: frontend — Vite / Tailwind build
+# Needs Composer vendor (boa/theme CSS + Blade @source) before Vite runs.
 # -----------------------------------------------------------------------------
 FROM node:22-bookworm-slim AS frontend
 
@@ -51,6 +52,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
 
 # -----------------------------------------------------------------------------
