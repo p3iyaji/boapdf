@@ -1,0 +1,185 @@
+# Production-oriented stack for BOA PDF (Laravel + PHP-FPM + nginx + MySQL + Redis).
+# Usage:
+#   cp .env.docker.example .env   # then set APP_KEY, MYSQL_*, passwords
+#   docker compose build
+#   docker compose up -d
+
+x-app-environment: &app-environment
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  GHOSTSCRIPT_PATH: /usr/bin/gs
+  QPDF_PATH: /usr/bin/qpdf
+  LIBREOFFICE_PATH: /usr/bin/soffice
+  PDFINFO_PATH: /usr/bin/pdfinfo
+  PDFTOCAIRO_PATH: /usr/bin/pdftocairo
+  PDFTOTEXT_PATH: /usr/bin/pdftotext
+  OCRMYPDF_PATH: /usr/bin/ocrmypdf
+  PDF2DOCX_PATH: /var/www/html/.venv/bin/pdf2docx
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    image: boa-pdf-app:latest
+    env_file:
+      - .env
+    environment:
+      <<: *app-environment
+      ROLE: app
+    volumes:
+      - pdf_storage:/var/www/html/storage/app/private
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - boa
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nginx
+    image: boa-pdf-nginx:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - boa
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  mysql:
+    image: mysql:8.4
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-boa_pdf}
+      MYSQL_USER: ${MYSQL_USER:-boa}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - boa
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - boa
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  worker:
+    image: boa-pdf-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    env_file:
+      - .env
+    environment:
+      <<: *app-environment
+      ROLE: worker
+    command:
+      [
+        "php",
+        "artisan",
+        "queue:work",
+        "redis",
+        "--sleep=1",
+        "--tries=3",
+        "--timeout=1800",
+        "--max-time=3600",
+      ]
+    volumes:
+      - pdf_storage:/var/www/html/storage/app/private
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    networks:
+      - boa
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  scheduler:
+    image: boa-pdf-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    env_file:
+      - .env
+    environment:
+      <<: *app-environment
+      ROLE: scheduler
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - pdf_storage:/var/www/html/storage/app/private
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    networks:
+      - boa
+    restart: unless-stopped
+
+networks:
+  boa:
+    driver: bridge
+
+volumes:
+  pdf_storage:
+  mysql_data:
+  redis_data:

@@ -1,0 +1,43 @@
+# Local development overrides — bind-mount source for live edits.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  app:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      ROLE: app
+    volumes:
+      - .:/var/www/html
+      - pdf_storage:/var/www/html/storage/app/private
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+      - /var/www/html/.venv
+      - /var/www/html/public/build
+
+  worker:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      ROLE: worker
+    volumes:
+      - .:/var/www/html
+      - pdf_storage:/var/www/html/storage/app/private
+      - /var/www/html/vendor
+      - /var/www/html/.venv
+
+  scheduler:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      ROLE: scheduler
+    volumes:
+      - .:/var/www/html
+      - pdf_storage:/var/www/html/storage/app/private
+      - /var/www/html/vendor
+      - /var/www/html/.venv
+
+  nginx:
+    volumes:
+      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

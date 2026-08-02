@@ -1,0 +1,199 @@
+{
+    "id": "bbb3f33c-3ea1-4fcb-b6c1-5fd748059ad6",
+    "tester": "code-runner",
+    "status": "completed",
+    "started_at": "2026-05-31T00:40:42+00:00",
+    "operations": [
+        {
+            "name": "execute.code",
+            "dispatched_at": "2026-05-31T00:40:42+00:00",
+            "ok": true,
+            "data": {
+                "code": "return App\\Models\\User::query()->limit(10)->get();",
+                "outcome": "return",
+                "result": {
+                    "format": "json",
+                    "value": [
+                        {
+                            "id": 1,
+                            "name": "Tanner Knapp",
+                            "email": "movi@mailinator.com",
+                            "email_verified_at": null,
+                            "created_at": "2026-05-13T19:57:35.000000Z",
+                            "updated_at": "2026-05-13T19:57:35.000000Z"
+                        },
+                        {
+                            "id": 2,
+                            "name": "Paul",
+                            "email": "p3.iyaji@gmail.com",
+                            "email_verified_at": null,
+                            "created_at": "2026-05-24T04:54:53.000000Z",
+                            "updated_at": "2026-05-24T04:54:53.000000Z"
+                        },
+                        {
+                            "id": 3,
+                            "name": "Paul Iyaji",
+                            "email": "pauliyaji@gmail.com",
+                            "email_verified_at": null,
+                            "created_at": "2026-05-31T00:37:00.000000Z",
+                            "updated_at": "2026-05-31T00:37:00.000000Z"
+                        }
+                    ]
+                },
+                "variables": [
+                    {
+                        "name": "formatter",
+                        "preview": {
+                            "format": "json",
+                            "value": []
+                        }
+                    },
+                    {
+                        "name": "inspector",
+                        "preview": {
+                            "format": "json",
+                            "value": []
+                        }
+                    }
+                ]
+            },
+            "error": null
+        }
+    ],
+    "query_log": [
+        {
+            "sql": "select * from \"users\" limit 10",
+            "bindings": [],
+            "time_ms": 0.08,
+            "connection": "sqlite",
+            "executed_at": "2026-05-31T00:40:42+00:00"
+        }
+    ],
+    "listener_log": [
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 1,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:42+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+            "order": 2,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:42+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 3,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:42+00:00"
+        }
+    ],
+    "model_event_log": [],
+    "result": {
+        "session_id": "bbb3f33c-3ea1-4fcb-b6c1-5fd748059ad6",
+        "ok": true,
+        "data": {
+            "code": "return App\\Models\\User::query()->limit(10)->get();",
+            "outcome": "return",
+            "result": {
+                "format": "json",
+                "value": [
+                    {
+                        "id": 1,
+                        "name": "Tanner Knapp",
+                        "email": "movi@mailinator.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-13T19:57:35.000000Z",
+                        "updated_at": "2026-05-13T19:57:35.000000Z"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Paul",
+                        "email": "p3.iyaji@gmail.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-24T04:54:53.000000Z",
+                        "updated_at": "2026-05-24T04:54:53.000000Z"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Paul Iyaji",
+                        "email": "pauliyaji@gmail.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-31T00:37:00.000000Z",
+                        "updated_at": "2026-05-31T00:37:00.000000Z"
+                    }
+                ]
+            },
+            "variables": [
+                {
+                    "name": "formatter",
+                    "preview": {
+                        "format": "json",
+                        "value": []
+                    }
+                },
+                {
+                    "name": "inspector",
+                    "preview": {
+                        "format": "json",
+                        "value": []
+                    }
+                }
+            ]
+        },
+        "logs": {
+            "queries": [
+                {
+                    "sql": "select * from \"users\" limit 10",
+                    "bindings": [],
+                    "time_ms": 0.08,
+                    "connection": "sqlite",
+                    "executed_at": "2026-05-31T00:40:42+00:00"
+                }
+            ],
+            "listeners": [
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 1,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:42+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+                    "order": 2,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:42+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 3,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:42+00:00"
+                }
+            ],
+            "model_events": []
+        },
+        "error": null
+    },
+    "error": null,
+    "transaction_mode": false
+}

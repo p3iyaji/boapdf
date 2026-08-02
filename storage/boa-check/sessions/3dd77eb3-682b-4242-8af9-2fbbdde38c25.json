@@ -1,0 +1,251 @@
+{
+    "id": "3dd77eb3-682b-4242-8af9-2fbbdde38c25",
+    "tester": "seeder-tester",
+    "status": "completed",
+    "started_at": "2026-05-31T00:46:44+00:00",
+    "operations": [
+        {
+            "name": "run.seeder",
+            "dispatched_at": "2026-05-31T00:46:44+00:00",
+            "ok": true,
+            "data": {
+                "seeder": "Database\\Seeders\\DatabaseSeeder",
+                "outcome": "completed"
+            },
+            "error": null
+        }
+    ],
+    "query_log": [
+        {
+            "sql": "select exists(select * from \"users\" where \"email\" = ?) as \"exists\"",
+            "bindings": [
+                "demo@boapdf.test"
+            ],
+            "time_ms": 0.07,
+            "connection": "sqlite",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "sql": "insert into \"users\" (\"name\", \"email\", \"password\", \"updated_at\", \"created_at\") values (?, ?, ?, ?, ?)",
+            "bindings": [
+                "Demo User",
+                "demo@boapdf.test",
+                "$2y$12$icPokHyB40B3kJPMqT6Wn.MD.zqpVhAj4hSG1XZHL0zXxcpma7fBC",
+                "2026-05-31 00:46:44",
+                "2026-05-31 00:46:44"
+            ],
+            "time_ms": 1.09,
+            "connection": "sqlite",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        }
+    ],
+    "listener_log": [
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 1,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+            "order": 2,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 3,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 1,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+            "order": 2,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 3,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        }
+    ],
+    "model_event_log": [
+        {
+            "event": "saving",
+            "model": "App\\Models\\User",
+            "key": null,
+            "key_name": "id",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "creating",
+            "model": "App\\Models\\User",
+            "key": null,
+            "key_name": "id",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "created",
+            "model": "App\\Models\\User",
+            "key": 4,
+            "key_name": "id",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        },
+        {
+            "event": "saved",
+            "model": "App\\Models\\User",
+            "key": 4,
+            "key_name": "id",
+            "executed_at": "2026-05-31T00:46:44+00:00"
+        }
+    ],
+    "result": {
+        "session_id": "3dd77eb3-682b-4242-8af9-2fbbdde38c25",
+        "ok": true,
+        "data": {
+            "seeder": "Database\\Seeders\\DatabaseSeeder",
+            "outcome": "completed"
+        },
+        "logs": {
+            "queries": [
+                {
+                    "sql": "select exists(select * from \"users\" where \"email\" = ?) as \"exists\"",
+                    "bindings": [
+                        "demo@boapdf.test"
+                    ],
+                    "time_ms": 0.07,
+                    "connection": "sqlite",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "sql": "insert into \"users\" (\"name\", \"email\", \"password\", \"updated_at\", \"created_at\") values (?, ?, ?, ?, ?)",
+                    "bindings": [
+                        "Demo User",
+                        "demo@boapdf.test",
+                        "$2y$12$icPokHyB40B3kJPMqT6Wn.MD.zqpVhAj4hSG1XZHL0zXxcpma7fBC",
+                        "2026-05-31 00:46:44",
+                        "2026-05-31 00:46:44"
+                    ],
+                    "time_ms": 1.09,
+                    "connection": "sqlite",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                }
+            ],
+            "listeners": [
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 1,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+                    "order": 2,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 3,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 1,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+                    "order": 2,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 3,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                }
+            ],
+            "model_events": [
+                {
+                    "event": "saving",
+                    "model": "App\\Models\\User",
+                    "key": null,
+                    "key_name": "id",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "creating",
+                    "model": "App\\Models\\User",
+                    "key": null,
+                    "key_name": "id",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "created",
+                    "model": "App\\Models\\User",
+                    "key": 4,
+                    "key_name": "id",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                },
+                {
+                    "event": "saved",
+                    "model": "App\\Models\\User",
+                    "key": 4,
+                    "key_name": "id",
+                    "executed_at": "2026-05-31T00:46:44+00:00"
+                }
+            ]
+        },
+        "error": null
+    },
+    "error": null,
+    "transaction_mode": false
+}

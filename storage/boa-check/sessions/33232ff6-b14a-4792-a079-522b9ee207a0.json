@@ -1,0 +1,167 @@
+{
+    "id": "33232ff6-b14a-4792-a079-522b9ee207a0",
+    "tester": "model-tester",
+    "status": "completed",
+    "started_at": "2026-05-31T00:40:13+00:00",
+    "operations": [
+        {
+            "name": "run.eloquent-query",
+            "dispatched_at": "2026-05-31T00:40:13+00:00",
+            "ok": true,
+            "data": {
+                "rows": [
+                    {
+                        "id": 1,
+                        "name": "Tanner Knapp",
+                        "email": "movi@mailinator.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-13T19:57:35.000000Z",
+                        "updated_at": "2026-05-13T19:57:35.000000Z"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Paul",
+                        "email": "p3.iyaji@gmail.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-24T04:54:53.000000Z",
+                        "updated_at": "2026-05-24T04:54:53.000000Z"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Paul Iyaji",
+                        "email": "pauliyaji@gmail.com",
+                        "email_verified_at": null,
+                        "created_at": "2026-05-31T00:37:00.000000Z",
+                        "updated_at": "2026-05-31T00:37:00.000000Z"
+                    }
+                ],
+                "row_meta": {
+                    "total": 3,
+                    "truncated": false,
+                    "limit": 100
+                }
+            },
+            "error": null
+        }
+    ],
+    "query_log": [
+        {
+            "sql": "select * from \"users\" limit 10",
+            "bindings": [],
+            "time_ms": 0.06,
+            "connection": "sqlite",
+            "executed_at": "2026-05-31T00:40:13+00:00"
+        }
+    ],
+    "listener_log": [
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 1,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:13+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+            "order": 2,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:13+00:00"
+        },
+        {
+            "event": "Illuminate\\Database\\Events\\QueryExecuted",
+            "listener": "Closure",
+            "order": 3,
+            "status": "completed",
+            "return": null,
+            "exception": null,
+            "executed_at": "2026-05-31T00:40:13+00:00"
+        }
+    ],
+    "model_event_log": [],
+    "result": {
+        "session_id": "33232ff6-b14a-4792-a079-522b9ee207a0",
+        "ok": true,
+        "data": {
+            "rows": [
+                {
+                    "id": 1,
+                    "name": "Tanner Knapp",
+                    "email": "movi@mailinator.com",
+                    "email_verified_at": null,
+                    "created_at": "2026-05-13T19:57:35.000000Z",
+                    "updated_at": "2026-05-13T19:57:35.000000Z"
+                },
+                {
+                    "id": 2,
+                    "name": "Paul",
+                    "email": "p3.iyaji@gmail.com",
+                    "email_verified_at": null,
+                    "created_at": "2026-05-24T04:54:53.000000Z",
+                    "updated_at": "2026-05-24T04:54:53.000000Z"
+                },
+                {
+                    "id": 3,
+                    "name": "Paul Iyaji",
+                    "email": "pauliyaji@gmail.com",
+                    "email_verified_at": null,
+                    "created_at": "2026-05-31T00:37:00.000000Z",
+                    "updated_at": "2026-05-31T00:37:00.000000Z"
+                }
+            ],
+            "row_meta": {
+                "total": 3,
+                "truncated": false,
+                "limit": 100
+            }
+        },
+        "logs": {
+            "queries": [
+                {
+                    "sql": "select * from \"users\" limit 10",
+                    "bindings": [],
+                    "time_ms": 0.06,
+                    "connection": "sqlite",
+                    "executed_at": "2026-05-31T00:40:13+00:00"
+                }
+            ],
+            "listeners": [
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 1,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:13+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "BoaCheck\\Subscribers\\QueryLogSubscriber@handle",
+                    "order": 2,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:13+00:00"
+                },
+                {
+                    "event": "Illuminate\\Database\\Events\\QueryExecuted",
+                    "listener": "Closure",
+                    "order": 3,
+                    "status": "completed",
+                    "return": null,
+                    "exception": null,
+                    "executed_at": "2026-05-31T00:40:13+00:00"
+                }
+            ],
+            "model_events": []
+        },
+        "error": null
+    },
+    "error": null,
+    "transaction_mode": false
+}

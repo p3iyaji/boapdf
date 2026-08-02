@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+@import '../../vendor/boa/theme/resources/css/theme.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../../vendor/boa/theme/resources/views/**/*.blade.php';

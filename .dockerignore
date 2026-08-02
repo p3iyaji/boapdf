@@ -1,0 +1,76 @@
+# Git / VCS
+.git
+.gitignore
+.gitattributes
+.github
+
+# Dependencies (installed in image stages)
+/vendor
+/node_modules
+.venv
+venv
+
+# Env & secrets
+.env
+.env.*
+!.env.docker.example
+
+# IDE / OS
+.idea
+.vscode
+*.swp
+.DS_Store
+.fleet
+.phpunit.result.cache
+.phpactor.json
+
+# Tests & tooling (not needed in prod image)
+/tests
+/phpunit.xml
+/phpunit.xml.dist
+/pest.php
+/.phpunit.cache
+/coverage
+/.pest
+/AGENTS.md
+/APPLICATION.md
+/COMPLETION-CHECK-AND-DEPLOYMENT-PLAN.md
+/.cursor
+/.junie
+/boost.json
+
+# Frontend / Vite leftovers
+/public/hot
+/public/storage
+npm-debug.log
+yarn-error.log
+
+# Storage runtime (recreated in image; PDFs live on named volume)
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/app/private/*
+!/storage/logs/.gitignore
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/app/private/.gitignore
+
+# Built assets (rebuilt in frontend stage)
+/public/build
+
+# Docker / compose noise
+docker-compose.override.yml
+
+# BOA check / analyzer leftovers
+/public/vendor/project-analyzer
+/boa-check*
+**/boa-check*
+
+# Misc
+*.md
+!README.md
+Homestead.json
+Homestead.yaml
+auth.json

@@ -1,0 +1,319 @@
+[2026-05-12 01:37:29] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/1/stream 2 1 100 2 c27ec4cf96f57119bd82ad42de5022a6 null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/1 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/1 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/1/stream null null false 65536 false false true  [Circular]  175170 GuestHouse Bill from Dpc to fisrt floor decking.PDF false 175170  false 65536  true true   [Circular] 175170 175170  2 null null {"url":"http://powerhouse.test/pdf/1","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:37:29.127Z"} 
+[2026-05-12 01:37:29] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/1","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:37:29.127Z"} 
+[2026-05-12 01:37:29] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/1","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:37:29.127Z"} 
+[2026-05-12 01:38:07] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 19 null null 20 null null null null null signatureData false placement && placement.page === page ? `left:${placement.pixelX}px; top:${placement.pixelY}px; width:${placement.pixelWidth}px;` : '' false 21 null null null null null  false null 26 null null null null null http://powerhouse.test/pdf/1/stream http://powerhouse.test/pdf/1/sign VqT1QyvYyVuTRPrKAUQTMgRfVmVFPysYPnhlrcXp 2 1 100 2 c27ec4cf96f57119bd82ad42de5022a6 null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/1/sign http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/1/sign null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/1/stream null null false 65536 false false true  [Circular]  175170 GuestHouse Bill from Dpc to fisrt floor decking.PDF false 175170  false 65536  true true   [Circular] 175170 175170  2 null null null false null null 60 false null {"url":"http://powerhouse.test/pdf/1/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:07.310Z"} 
+[2026-05-12 01:38:07] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/1/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:07.310Z"} 
+[2026-05-12 01:38:07] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/1/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:07.310Z"} 
+[2026-05-12 01:38:38] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/2/stream 2 1 100 2 122a6ee433e5e581c1f74248c7041cbb null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/2 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/2 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/2/stream null null false 65536 false false true  [Circular]  175156 GuestHouse Bill from Dpc to fisrt floor decking-compressed.pdf false 175156  false 65536  true true   [Circular] 175156 175156  2 null null {"url":"http://powerhouse.test/pdf/2","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:38.495Z"} 
+[2026-05-12 01:38:38] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/2","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:38.495Z"} 
+[2026-05-12 01:38:38] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/2","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:38:38.495Z"} 
+[2026-05-12 01:39:06] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/3/stream 2 1 100 2 122a6ee433e5e581c1f74248c7041cbb null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/3 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/3 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/3/stream null null false 65536 false false true  [Circular]  175156 GuestHouse Bill from Dpc to fisrt floor decking-compressed.pdf false 175156  false 65536  true true   [Circular] 175156 175156  2 null null {"url":"http://powerhouse.test/pdf/3","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:06.005Z"} 
+[2026-05-12 01:39:06] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/3","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:06.005Z"} 
+[2026-05-12 01:39:06] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/3","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:06.005Z"} 
+[2026-05-12 01:39:23] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/4/stream 2 1 100 2 122a6ee433e5e581c1f74248c7041cbb null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/4 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/4 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/4/stream null null false 65536 false false true  [Circular]  175156 GuestHouse Bill from Dpc to fisrt floor decking-compressed.pdf false 175156  false 65536  true true   [Circular] 175156 175156  2 null null {"url":"http://powerhouse.test/pdf/4","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:23.192Z"} 
+[2026-05-12 01:39:23] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/4","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:23.193Z"} 
+[2026-05-12 01:39:23] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/4","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:39:23.193Z"} 
+[2026-05-12 01:41:07] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/5/stream 2 1 100 2 36363139333962662d366561622d343933322d623538332d656632393933313833366365 null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/5 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/5 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/5/stream null null false 65536 false false true  [Circular]  201405 Insurance Certificate.pdf false 201405  false 65536  true true   [Circular] 201405 201405  2 null null {"url":"http://powerhouse.test/pdf/5","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:07.126Z"} 
+[2026-05-12 01:41:07] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/5","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:07.127Z"} 
+[2026-05-12 01:41:07] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/5","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:07.127Z"} 
+[2026-05-12 01:41:20] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/6/stream 4 1 100 4 393f4c57f0858e3653461d1e4a3e4b4e null d1 d1_worker  1 1  false 1 [Circular]     [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/6 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/6 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/6/stream null null false 65536 false false true  [Circular]  372160 merged-20260512-014120.pdf false 372160  false 65536  true true  [Circular] null 0 false  true   null [Circular] 372160 372160  4 null null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:20.513Z"} 
+[2026-05-12 01:41:20] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:20.514Z"} 
+[2026-05-12 01:41:20] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:20.514Z"} 
+[2026-05-12 01:41:34] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/6/stream 4 1 100 4 393f4c57f0858e3653461d1e4a3e4b4e null d1 d1_worker  1 1  false 0 [Circular]     [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/6 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/6 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/6/stream null null false 65536 false false true  [Circular]  372160 merged-20260512-014120.pdf false 372160  false 65536  true true  [Circular]  44480 false  true   null [Circular] 372160 372160  4 null null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:34.282Z"} 
+[2026-05-12 01:41:34] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:34.283Z"} 
+[2026-05-12 01:41:34] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:41:34.283Z"} 
+[2026-05-12 01:42:46] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 19 null null 20 null null null null null signatureData false placement && placement.page === page ? `left:${placement.pixelX}px; top:${placement.pixelY}px; width:${placement.pixelWidth}px;` : '' false 21 null null null null null  false null 26 null null null null null http://powerhouse.test/pdf/5/stream http://powerhouse.test/pdf/5/sign VqT1QyvYyVuTRPrKAUQTMgRfVmVFPysYPnhlrcXp 2 1 100 2 36363139333962662d366561622d343933322d623538332d656632393933313833366365 null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/5/sign http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/5/sign null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/5/stream null null false 65536 false false true  [Circular]  201405 Insurance Certificate.pdf false 201405  false 65536  true true   [Circular] 201405 201405  2 null null null false null null 60 false null {"url":"http://powerhouse.test/pdf/5/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:42:46.288Z"} 
+[2026-05-12 01:42:46] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/5/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:42:46.288Z"} 
+[2026-05-12 01:42:46] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/5/sign","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T01:42:46.288Z"} 
+[2026-05-12 19:20:56] local.WARNING: Alpine Expression Error: Cannot read private member #d from an object whose class did not declare it
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/6/stream 4 1 100 4 393f4c57f0858e3653461d1e4a3e4b4e null d1 d1_worker  1 1      [Circular] null false 1  [Circular] [Circular] main worker [Circular] 2 1     d1 false null null   http://powerhouse.test/pdf/6 http://powerhouse.test http: powerhouse.test powerhouse.test null /pdf/6 null null  null  0 true true false false false [Circular] false false null [Circular]  null true null false null http://powerhouse.test/pdf/6/stream null null false 65536 false false true  [Circular]  372160 merged-20260512-014120.pdf false 372160  false 65536  true true   [Circular] 372160 372160  4 null null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:20:56.483Z"} 
+[2026-05-12 19:20:56] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:20:56.484Z"} 
+[2026-05-12 19:20:56] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:20:56.484Z"} 
+[2026-05-12 19:21:59] local.WARNING: Alpine Expression Error: Invalid PDF structure.
+
+Expression: "init()" null null 5 null 18 null null null null null http://powerhouse.test/pdf/7/stream 2 1 100 null null {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:21:59.109Z"} 
+[2026-05-12 19:21:59] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:21:59.109Z"} 
+[2026-05-12 19:21:59] local.ERROR: Script error. null 0 0 null {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:21:59.109Z"} 
+[2026-05-12 19:26:56] local.ERROR: InvalidPDFException Invalid PDF structure. Error
+    at BaseExceptionClosure (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8922)
+    at Object.defineProperty.value (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8993)
+    at __w_pdfjs_require__ (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:314369)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:318930
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319159
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319190
+    at webpackUniversalModuleDefinition (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:331)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:335 {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:26:56.649Z"} 
+[2026-05-12 19:26:56] local.ERROR: InvalidPDFException Invalid PDF structure. Error
+    at BaseExceptionClosure (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8922)
+    at Object.defineProperty.value (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8993)
+    at __w_pdfjs_require__ (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:314369)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:318930
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319159
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319190
+    at webpackUniversalModuleDefinition (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:331)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:335 {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:26:56.662Z"} 
+[2026-05-12 19:27:05] local.ERROR: InvalidPDFException Invalid PDF structure. Error
+    at BaseExceptionClosure (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8922)
+    at Object.defineProperty.value (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8993)
+    at __w_pdfjs_require__ (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:314369)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:318930
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319159
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319190
+    at webpackUniversalModuleDefinition (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:331)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:335 {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:05.115Z"} 
+[2026-05-12 19:27:05] local.ERROR: InvalidPDFException Invalid PDF structure. Error
+    at BaseExceptionClosure (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8922)
+    at Object.defineProperty.value (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:8993)
+    at __w_pdfjs_require__ (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:314369)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:318930
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319159
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:319190
+    at webpackUniversalModuleDefinition (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:331)
+    at https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:335 {"url":"http://powerhouse.test/pdf/7","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:05.116Z"} 
+[2026-05-12 19:27:08] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/6:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/6:353:32) {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:07.929Z"} 
+[2026-05-12 19:27:08] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/6:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/6:353:32) {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:07.929Z"} 
+[2026-05-12 19:27:18] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/6:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/6:353:32) {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:17.894Z"} 
+[2026-05-12 19:27:18] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/6:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/6:353:32) {"url":"http://powerhouse.test/pdf/6","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:17.895Z"} 
+[2026-05-12 19:27:22] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/5:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/5:353:32) {"url":"http://powerhouse.test/pdf/5","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:22.394Z"} 
+[2026-05-12 19:27:22] local.ERROR: TypeError Cannot read private member #d from an object whose class did not declare it TypeError: Cannot read private member #d from an object whose class did not declare it
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:46327)
+    at Proxy.getPage (https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js:22:24053)
+    at Proxy.render (http://powerhouse.test/pdf/5:367:48)
+    at Proxy.init (http://powerhouse.test/pdf/5:353:32) {"url":"http://powerhouse.test/pdf/5","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36","timestamp":"2026-05-12T19:27:22.396Z"} 
+[2026-07-04 18:36:20] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:36:20.594Z"} 
+[2026-07-04 18:36:50] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:36:49.932Z"} 
+[2026-07-04 18:37:09] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:37:09.478Z"} 
+[2026-07-04 18:37:42] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:37:42.536Z"} 
+[2026-07-04 18:38:28] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:38:28.041Z"} 
+[2026-07-04 18:38:36] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:38:36.740Z"} 
+[2026-07-04 18:38:48] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:38:48.483Z"} 
+[2026-07-04 18:39:15] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:39:15.280Z"} 
+[2026-07-04 18:39:29] local.ERROR: TypeError (k.nodes ?? []).filter is not a function TypeError: (k.nodes ?? []).filter is not a function
+    at A (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:127:143)
+    at aE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:126:8037)
+    at Ux (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:128:4452)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:11551)
+    at Nx.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:16:21192)
+    at Nx.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2044)
+    at Nx.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-DKl9w_cq.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:39:29.463Z"} 
+[2026-07-04 18:55:17] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:55:17.531Z"} 
+[2026-07-04 18:55:24] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:55:24.298Z"} 
+[2026-07-04 18:55:40] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:55:39.915Z"} 
+[2026-07-04 18:55:45] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:55:45.581Z"} 
+[2026-07-04 18:59:18] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:59:18.444Z"} 
+[2026-07-04 18:59:33] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T18:59:33.220Z"} 
+[2026-07-04 19:07:55] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T19:07:55.375Z"} 
+[2026-07-04 19:08:05] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T19:08:05.191Z"} 
+[2026-07-04 19:12:49] local.ERROR: TypeError (L.nodes ?? []).filter is not a function TypeError: (L.nodes ?? []).filter is not a function
+    at H (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:127:144)
+    at fE.fn (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:126:9393)
+    at Kx (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:3457)
+    at get value (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:14310)
+    at Proxy.<anonymous> (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:128:4514)
+    at bf (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:11553)
+    at Ux.rt [as fn] (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:16:21195)
+    at Ux.run (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2044)
+    at Ux.runIfDirty (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:10:2354)
+    at _l (http://powerhouse.test/vendor/project-analyzer/build/assets/app-D49EWk5V.js:14:46) {"url":"http://powerhouse.test/analyzer/components","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","timestamp":"2026-07-04T19:12:49.823Z"} 
