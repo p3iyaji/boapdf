@@ -83,14 +83,26 @@ services:
       - boa
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      # mysqladmin is more reliable than healthcheck.sh on small/slow hosts
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent",
+        ]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+      # Tuned for small (1 vCPU / low RAM) VPS hosts
+      - --innodb-buffer-pool-size=128M
+      - --innodb-log-buffer-size=8M
+      - --performance-schema=OFF
+      - --max-connections=50
+      - --tmp-table-size=16M
+      - --max-heap-table-size=16M
 
   redis:
     image: redis:7-alpine
