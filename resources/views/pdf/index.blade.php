@@ -96,7 +96,7 @@
             <p class="mt-2 text-xs text-teal-800/70"><span x-text="frames.length"></span> page(s) queued</p>
 
             <div class="mt-3 grid max-h-32 grid-cols-4 gap-2 overflow-y-auto sm:max-h-40" x-show="frames.length > 0">
-                <template x-for="f in frames" :key="f.preview">
+                <template x-for="(f, i) in frames" :key="i">
                     <div class="aspect-square overflow-hidden rounded-lg border border-teal-900/10 bg-white">
                         <img :src="f.preview" alt="" class="h-full w-full object-cover" />
                     </div>

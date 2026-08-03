@@ -21,6 +21,14 @@ it('lists only the current user\'s documents', function () {
         ->assertDontSee('not-mine.pdf');
 });
 
+it('includes the camera capture alpine helper in the library page', function () {
+    $this->actingAs($this->user)
+        ->get(route('pdf.index'))
+        ->assertOk()
+        ->assertSee('function cameraCapture()', false)
+        ->assertSee('x-data="cameraCapture()"', false);
+});
+
 it('accepts a PDF upload and stores a document row', function () {
     $file = UploadedFile::fake()->create('contract.pdf', 50, 'application/pdf');
 
