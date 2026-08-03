@@ -54,7 +54,8 @@ services:
       target: nginx
     image: boa-pdf-nginx:latest
     ports:
-      - "8080:80"
+      # Host port — set HTTP_PORT in .env so staging/production can coexist (e.g. 8080 vs 8081)
+      - "${HTTP_PORT:-8080}:80"
     depends_on:
       app:
         condition: service_healthy
