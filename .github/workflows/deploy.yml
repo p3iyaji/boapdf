@@ -5,9 +5,9 @@ env:
 
 on:
   pull_request:
-    branches: [development, master]
+    branches: [dev, main]
   push:
-    branches: [development, master]
+    branches: [dev, main]
   workflow_dispatch:
 
 concurrency:
@@ -94,7 +94,7 @@ jobs:
   deploy-staging:
     name: Deploy staging
     needs: [quality, docker]
-    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -108,19 +108,20 @@ jobs:
           script: |
             set -euo pipefail
             cd /var/www/boapdf-staging
-            git fetch origin development
-            git checkout development
-            git pull origin development
+            git fetch origin dev
+            git checkout dev
+            git pull origin dev
             docker compose build
             docker compose up -d
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan optimize
-            curl -fsS http://127.0.0.1:8080/up
+            HTTP_PORT=$(grep -E '^HTTP_PORT=' .env 2>/dev/null | cut -d= -f2- || true)
+            curl -fsS "http://127.0.0.1:${HTTP_PORT:-8081}/up"
 
   deploy-production:
     name: Deploy production
     needs: [quality, docker]
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -134,11 +135,12 @@ jobs:
           script: |
             set -euo pipefail
             cd /var/www/boapdf-production
-            git fetch origin master
-            git checkout master
-            git pull origin master
+            git fetch origin main
+            git checkout main
+            git pull origin main
             docker compose build
             docker compose up -d
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan optimize
-            curl -fsS http://127.0.0.1:8080/up
+            HTTP_PORT=$(grep -E '^HTTP_PORT=' .env 2>/dev/null | cut -d= -f2- || true)
+            curl -fsS "http://127.0.0.1:${HTTP_PORT:-8080}/up"
