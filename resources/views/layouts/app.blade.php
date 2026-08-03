@@ -41,5 +41,7 @@
     @else
         @yield('content')
     @endauth
+    {{-- Page scripts (Alpine helpers) must load before deferred Alpine CDN runs. --}}
+    @stack('scripts')
 </body>
 </html>
