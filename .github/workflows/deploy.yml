@@ -92,13 +92,13 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy-staging:
-    name: Deploy staging
+    name: Deploy stagging
     needs: [quality, docker]
     if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: staging
+    environment: stagging
     steps:
-      - name: Deploy staging over SSH
+      - name: Deploy stagging over SSH
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -107,7 +107,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -euo pipefail
-            cd /var/www/boapdf-staging
+            cd /var/www/boapdf-stagging
             git fetch origin dev
             git checkout dev
             git pull origin dev
