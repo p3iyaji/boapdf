@@ -3,11 +3,23 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompressController;
 use App\Http\Controllers\ConvertController;
+use App\Http\Controllers\GuestSignatureController;
 use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('sign')->name('sign.guest.')->group(function (): void {
+    Route::get('/{token}/thanks', [GuestSignatureController::class, 'thanks'])->name('thanks');
+    Route::get('/{token}/stream', [GuestSignatureController::class, 'stream'])
+        ->middleware('throttle:60,1')
+        ->name('stream');
+    Route::get('/{token}', [GuestSignatureController::class, 'show'])->name('show');
+    Route::post('/{token}', [GuestSignatureController::class, 'store'])
+        ->middleware('throttle:pdf-heavy')
+        ->name('store');
+});
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -68,5 +80,8 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/{document}/sign', [SignatureController::class, 'store'])
             ->middleware('throttle:pdf-heavy')
             ->name('sign.store');
+        Route::post('/{document}/sign/invite', [SignatureController::class, 'invite'])
+            ->middleware('throttle:6,1')
+            ->name('sign.invite');
     });
 });

@@ -11,12 +11,118 @@
         </p>
     </div>
     <div class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end md:w-auto md:max-w-none md:shrink-0">
-        <a href="{{ route('pdf.download', $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Download</a>
-        <a href="{{ route('pdf.sign.create', $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 active:bg-emerald-800">Sign</a>
+        @if ($document->isFileReady())
+            <a href="{{ route('pdf.download', $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Download</a>
+        @endif
+        @if ($document->status === \App\Models\Document::STATUS_COMPLETED && $document->mime_type === 'application/pdf')
+            <a href="{{ route('pdf.compress.create', ['document' => $document->id]) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-accent-300 bg-accent-50 px-4 text-sm font-medium text-accent-900 hover:bg-accent-100 active:bg-accent-200">Compress</a>
+        @endif
+        @if ($document->isFileReady() && $document->mime_type === 'application/pdf')
+            <a href="{{ route('pdf.sign.create', $document->operation_type === \App\Models\Document::OP_SIGNED && $document->parent_document_id ? $document->parent_document_id : $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 active:bg-emerald-800">Sign / invite</a>
+        @endif
         <a href="{{ route('pdf.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800">Back to library</a>
     </div>
 </div>
 
+@php
+    $compressionOriginal = (int) ($document->metadata['original_size'] ?? 0);
+    $compressionNew = (int) ($document->metadata['new_size'] ?? 0);
+    $showCompressionSavings = $document->operation_type === \App\Models\Document::OP_COMPRESSED
+        && $compressionOriginal > 0
+        && $compressionNew > 0;
+    $compressionSaved = $showCompressionSavings ? max(0, $compressionOriginal - $compressionNew) : 0;
+    $compressionPercent = $showCompressionSavings && $compressionOriginal > 0
+        ? (int) round((1 - ($compressionNew / $compressionOriginal)) * 100)
+        : 0;
+@endphp
+
+@if ($showCompressionSavings)
+    <div class="mb-4 rounded-xl border border-accent-200/80 bg-accent-50/90 p-4 shadow-sm sm:mb-6 sm:p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">Compression result</h2>
+                <p class="mt-0.5 text-xs text-gray-600">
+                    @if ($compressionPercent > 0)
+                        This file is {{ $compressionPercent }}% smaller than the original.
+                    @else
+                        Size barely changed — the original was already well optimized.
+                    @endif
+                    @if (! empty($document->metadata['level']))
+                        · Level: {{ ucfirst((string) $document->metadata['level']) }}
+                    @endif
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+                <div class="rounded-lg bg-white/80 px-3 py-2 text-center shadow-sm">
+                    <p class="text-[10px] font-medium uppercase tracking-wide text-gray-500">Before</p>
+                    <p class="font-semibold tabular-nums text-gray-800">{{ \Illuminate\Support\Number::fileSize($compressionOriginal) }}</p>
+                </div>
+                <span class="hidden text-gray-400 sm:inline" aria-hidden="true">&rarr;</span>
+                <div class="rounded-lg bg-white/80 px-3 py-2 text-center shadow-sm">
+                    <p class="text-[10px] font-medium uppercase tracking-wide text-gray-500">After</p>
+                    <p class="font-semibold tabular-nums text-gray-800">{{ \Illuminate\Support\Number::fileSize($compressionNew) }}</p>
+                </div>
+                @if ($compressionSaved > 0)
+                    <div class="rounded-lg bg-emerald-600 px-3 py-2 text-center text-white shadow-sm">
+                        <p class="text-[10px] font-medium uppercase tracking-wide text-emerald-100">Saved</p>
+                        <p class="font-semibold tabular-nums">{{ \Illuminate\Support\Number::fileSize($compressionSaved) }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
+
+@if (($signatureRequests ?? collect())->isNotEmpty())
+    <div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-5">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-sm font-semibold text-gray-800">Signature requests</h2>
+            <a href="{{ route('pdf.sign.create', $envelopeDocumentId ?? $document) }}?tab=invite" class="text-sm font-medium text-emerald-700 hover:text-emerald-900">Manage invites</a>
+        </div>
+        <ul class="divide-y divide-gray-100">
+            @foreach ($signatureRequests as $req)
+                <li class="flex flex-wrap items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0">
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-gray-800">{{ $req->signer_name ?: $req->signer_email }}</p>
+                        @if ($req->signer_name)
+                            <p class="truncate text-xs text-gray-500">{{ $req->signer_email }}</p>
+                        @endif
+                    </div>
+                    @if ($req->status === \App\Models\SignatureRequest::STATUS_SIGNED)
+                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                            Signed{{ $req->signed_at ? ' · '.$req->signed_at->diffForHumans() : '' }}
+                        </span>
+                    @elseif ($req->isExpired())
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">Expired</span>
+                    @else
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Waiting</span>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@if (! $document->isFileReady())
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center shadow-sm"
+         @if (in_array($document->status, [\App\Models\Document::STATUS_PROCESSING, \App\Models\Document::STATUS_PENDING], true))
+             x-data
+             x-init="setTimeout(() => window.location.reload(), 3000)"
+         @endif>
+        @if (in_array($document->status, [\App\Models\Document::STATUS_PROCESSING, \App\Models\Document::STATUS_PENDING], true))
+            <p class="text-base font-semibold text-amber-950">Still processing</p>
+            <p class="mt-2 text-sm text-amber-900/80">This PDF is being prepared. This page will refresh automatically.</p>
+            <a href="{{ route('pdf.show', $document) }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-800 px-4 text-sm font-semibold text-white hover:bg-amber-900">Refresh now</a>
+        @elseif ($document->status === \App\Models\Document::STATUS_FAILED)
+            <p class="text-base font-semibold text-red-900">Processing failed</p>
+            <p class="mt-2 text-sm text-red-800/80">{{ $document->metadata['error'] ?? 'Something went wrong while preparing this file.' }}</p>
+            <a href="{{ route('pdf.index') }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-red-800 px-4 text-sm font-semibold text-white hover:bg-red-900">Back to library</a>
+        @else
+            <p class="text-base font-semibold text-gray-900">File unavailable</p>
+            <p class="mt-2 text-sm text-gray-600">The file for this document could not be found.</p>
+        @endif
+    </div>
+@else
 <div class="min-w-0 max-w-full rounded-xl bg-white p-3 shadow sm:p-4"
      x-data="pdfViewer({
         url: @js(route('pdf.stream', $document)),
@@ -63,8 +169,10 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
+@if ($document->isFileReady())
 @push('head')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 @endpush
@@ -135,3 +243,4 @@
     }
 </script>
 @endpush
+@endif

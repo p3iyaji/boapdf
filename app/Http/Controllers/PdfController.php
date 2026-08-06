@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CapturePdfRequest;
 use App\Http\Requests\UploadPdfRequest;
 use App\Models\Document;
+use App\Models\SignatureRequest;
 use App\Services\PdfConversionService;
 use App\Services\PdfFromImagesService;
 use App\Support\DocumentsDisk;
@@ -126,12 +127,27 @@ class PdfController extends Controller
     {
         $this->authorize('view', $document);
 
-        return view('pdf.show', ['document' => $document]);
+        $envelopeId = $document->operation_type === Document::OP_SIGNED && $document->parent_document_id
+            ? $document->parent_document_id
+            : $document->id;
+
+        $signatureRequests = SignatureRequest::query()
+            ->where('source_document_id', $envelopeId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        return view('pdf.show', [
+            'document' => $document,
+            'signatureRequests' => $signatureRequests,
+            'envelopeDocumentId' => $envelopeId,
+        ]);
     }
 
     public function stream(Request $request, Document $document): BinaryFileResponse|StreamedResponse
     {
         $this->authorize('view', $document);
+        $this->ensureDocumentFileIsReady($document);
 
         $disposition = HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_INLINE,
@@ -148,6 +164,7 @@ class PdfController extends Controller
     public function download(Request $request, Document $document): BinaryFileResponse
     {
         $this->authorize('view', $document);
+        $this->ensureDocumentFileIsReady($document);
 
         return response()->download($document->absolutePath(), $document->original_name);
     }
@@ -162,5 +179,20 @@ class PdfController extends Controller
         $document->delete();
 
         return redirect()->route('pdf.index')->with('success', 'Document deleted.');
+    }
+
+    private function ensureDocumentFileIsReady(Document $document): void
+    {
+        if ($document->isFileReady()) {
+            return;
+        }
+
+        $message = match ($document->status) {
+            Document::STATUS_PROCESSING, Document::STATUS_PENDING => 'This document is still processing. Refresh in a moment.',
+            Document::STATUS_FAILED => 'This document failed to process and has no file to download.',
+            default => 'Document file is not available.',
+        };
+
+        abort(404, $message);
     }
 }
