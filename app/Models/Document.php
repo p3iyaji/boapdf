@@ -80,6 +80,11 @@ class Document extends Model
         return $this->hasMany(SignatureRequest::class);
     }
 
+    public function envelopeSignatureRequests(): HasMany
+    {
+        return $this->hasMany(SignatureRequest::class, 'source_document_id');
+    }
+
     public function getHumanFileSizeAttribute(): string
     {
         $bytes = (int) $this->file_size;
@@ -105,5 +110,12 @@ class Document extends Model
         }
 
         return $resolved;
+    }
+
+    public function isFileReady(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED
+            && filled($this->file_path)
+            && DocumentsDisk::disk()->exists($this->file_path);
     }
 }

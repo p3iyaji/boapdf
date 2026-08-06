@@ -10,7 +10,9 @@ class SignPdfRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        // Authenticated self-sign uses the policy in the controller.
+        // Guest signing is authorized via a valid invitation token in the route.
+        return true;
     }
 
     /**

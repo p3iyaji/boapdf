@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\InviteSignersRequest;
 use App\Http\Requests\SignPdfRequest;
-use App\Jobs\ProcessPdfSignJob;
 use App\Models\Document;
+use App\Models\SignatureRequest;
+use App\Services\DocumentSigningService;
 use App\Support\SafeUserMessage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -14,11 +16,22 @@ use Throwable;
 
 class SignatureController extends Controller
 {
+    public function __construct(private DocumentSigningService $signing) {}
+
     public function create(Request $request, Document $document): View
     {
         $this->authorize('view', $document);
 
-        return view('pdf.sign', ['document' => $document]);
+        $signatureRequests = SignatureRequest::query()
+            ->where('source_document_id', $document->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        return view('pdf.sign', [
+            'document' => $document,
+            'signatureRequests' => $signatureRequests,
+        ]);
     }
 
     public function store(SignPdfRequest $request, Document $document): RedirectResponse
@@ -28,26 +41,7 @@ class SignatureController extends Controller
         $data = $request->validated();
 
         try {
-            $signed = Document::create([
-                'user_id' => $request->user()->id,
-                'original_name' => pathinfo($document->original_name, PATHINFO_FILENAME).'-signed.pdf',
-                'file_path' => 'signed/pending-'.uniqid('', true).'.pdf',
-                'file_size' => 0,
-                'mime_type' => 'application/pdf',
-                'pages' => 0,
-                'status' => Document::STATUS_PROCESSING,
-                'operation_type' => Document::OP_SIGNED,
-                'parent_document_id' => $document->id,
-                'metadata' => [],
-            ]);
-
-            ProcessPdfSignJob::dispatch($signed->id, $document->id, [
-                ...$data,
-                'requester_email' => $request->user()->email,
-                'signer_email' => $request->user()->email,
-            ]);
-
-            $signed->refresh();
+            $signed = $this->signing->queueSelfSign($request->user(), $document, $data);
 
             if ($signed->status === Document::STATUS_FAILED) {
                 return back()->withErrors(['sign' => 'Could not update PDF. Please try again.']);
@@ -62,6 +56,41 @@ class SignatureController extends Controller
             Log::error('PDF signing failed', ['error' => $e->getMessage()]);
 
             return back()->withErrors(['sign' => SafeUserMessage::from($e, 'Could not update PDF')]);
+        }
+    }
+
+    public function invite(InviteSignersRequest $request, Document $document): RedirectResponse
+    {
+        $this->authorize('update', $document);
+
+        $signers = collect($request->validated('signers'))
+            ->map(fn (array $signer): array => [
+                'email' => $signer['email'],
+                'name' => $signer['name'] ?? null,
+            ])
+            ->all();
+
+        try {
+            $created = $this->signing->inviteSigners($request->user(), $document, $signers);
+
+            if ($created === []) {
+                return back()->withErrors([
+                    'signers' => 'Those signers already have an open invitation for this document.',
+                ]);
+            }
+
+            $count = count($created);
+            $message = $count === 1
+                ? 'Signature request sent to '.$created[0]->signer_email.'.'
+                : "Signature requests sent to {$count} people.";
+
+            return redirect()
+                ->route('pdf.sign.create', $document)
+                ->with('success', $message);
+        } catch (Throwable $e) {
+            Log::error('Signature invite failed', ['error' => $e->getMessage()]);
+
+            return back()->withErrors(['signers' => SafeUserMessage::from($e, 'Could not send signature requests')]);
         }
     }
 }

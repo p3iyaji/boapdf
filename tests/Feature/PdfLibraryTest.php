@@ -26,7 +26,10 @@ it('includes the camera capture alpine helper in the library page', function () 
         ->get(route('pdf.index'))
         ->assertOk()
         ->assertSee('function cameraCapture()', false)
-        ->assertSee('x-data="cameraCapture()"', false);
+        ->assertSee('x-data="cameraCapture()"', false)
+        ->assertSee('capture="environment"', false)
+        ->assertSee('useNativeCamera()', false)
+        ->assertSee('Choose photos', false);
 });
 
 it('accepts a PDF upload and stores a document row', function () {
@@ -61,6 +64,41 @@ it('streams the PDF for the authenticated owner', function () {
         ->get(route('pdf.stream', $doc))
         ->assertOk()
         ->assertHeader('content-type', 'application/pdf');
+});
+
+it('returns not found when streaming a processing document with a pending path', function () {
+    $doc = Document::factory()->for($this->user)->create([
+        'file_path' => 'compressed/pending-missing.pdf',
+        'status' => Document::STATUS_PROCESSING,
+        'operation_type' => Document::OP_COMPRESSED,
+        'mime_type' => 'application/pdf',
+        'file_size' => 0,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.stream', $doc))
+        ->assertNotFound();
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.download', $doc))
+        ->assertNotFound();
+});
+
+it('shows a processing state instead of the viewer when the file is not ready', function () {
+    $doc = Document::factory()->for($this->user)->create([
+        'file_path' => 'compressed/pending-missing.pdf',
+        'status' => Document::STATUS_PROCESSING,
+        'operation_type' => Document::OP_COMPRESSED,
+        'mime_type' => 'application/pdf',
+        'original_name' => 'report-compressed.pdf',
+        'file_size' => 0,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.show', $doc))
+        ->assertOk()
+        ->assertSee('Still processing')
+        ->assertDontSee('function pdfViewer(', false);
 });
 
 it('forbids streaming someone else\'s document', function () {

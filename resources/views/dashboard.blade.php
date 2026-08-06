@@ -55,7 +55,7 @@
             </div>
             <h3 class="font-semibold text-gray-800">Compress</h3>
         </div>
-        <p class="text-sm leading-relaxed text-gray-600">Shrink PDF size with Ghostscript-powered compression presets.</p>
+        <p class="text-sm leading-relaxed text-gray-600">Shrink PDFs for email and sharing — pick a quality level and see how much you save.</p>
     </a>
 
     <a href="{{ route('pdf.convert.create') }}" class="block rounded-xl bg-white p-5 shadow transition hover:shadow-lg sm:p-6">
@@ -75,7 +75,7 @@
             </div>
             <h3 class="font-semibold text-gray-800">Sign</h3>
         </div>
-        <p class="text-sm leading-relaxed text-gray-600">Choose a PDF from your library, then add a drawn signature on the page you need.</p>
+        <p class="text-sm leading-relaxed text-gray-600">Sign a PDF yourself or invite others by email—each person gets a secure signing link.</p>
     </a>
 </div>
 

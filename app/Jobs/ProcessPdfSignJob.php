@@ -38,7 +38,10 @@ class ProcessPdfSignJob implements ShouldQueue
      *     logo_y?: float|null,
      *     logo_width?: float|null,
      *     requester_email: string,
-     *     signer_email: string
+     *     signer_email: string,
+     *     signer_name?: string|null,
+     *     source_document_id?: int|null,
+     *     signature_request_id?: int|null
      * }  $payload
      */
     public function __construct(
@@ -50,10 +53,11 @@ class ProcessPdfSignJob implements ShouldQueue
     public function handle(PdfSignatureService $signer, PdfConversionService $conversion): void
     {
         $document = Document::query()->findOrFail($this->documentId);
-        $source = Document::query()
-            ->whereKey($this->sourceDocumentId)
-            ->where('user_id', $document->user_id)
-            ->firstOrFail();
+        $source = Document::query()->whereKey($this->sourceDocumentId)->firstOrFail();
+
+        if ($document->user_id !== null && $source->user_id !== null && $document->user_id !== $source->user_id) {
+            throw new \RuntimeException('Stamp source does not belong to the signed document owner.');
+        }
 
         $data = $this->payload;
         $absolutePath = null;
@@ -137,14 +141,35 @@ class ProcessPdfSignJob implements ShouldQueue
                 'metadata' => $metadata,
             ]);
 
-            SignatureRequest::create([
-                'document_id' => $document->id,
-                'requester_email' => $data['requester_email'],
-                'signer_email' => $data['signer_email'],
-                'signature_position' => $signaturePosition,
-                'status' => SignatureRequest::STATUS_SIGNED,
-                'signed_file_path' => $relativePath,
-            ]);
+            $envelopeId = isset($data['source_document_id'])
+                ? (int) $data['source_document_id']
+                : (int) ($document->parent_document_id ?: $this->sourceDocumentId);
+
+            if (! empty($data['signature_request_id'])) {
+                SignatureRequest::query()
+                    ->whereKey((int) $data['signature_request_id'])
+                    ->where('status', SignatureRequest::STATUS_PENDING)
+                    ->update([
+                        'document_id' => $document->id,
+                        'source_document_id' => $envelopeId,
+                        'signature_position' => $signaturePosition,
+                        'status' => SignatureRequest::STATUS_SIGNED,
+                        'signed_file_path' => $relativePath,
+                        'signed_at' => now(),
+                    ]);
+            } else {
+                SignatureRequest::create([
+                    'document_id' => $document->id,
+                    'source_document_id' => $envelopeId,
+                    'requester_email' => $data['requester_email'],
+                    'signer_email' => $data['signer_email'],
+                    'signer_name' => $data['signer_name'] ?? null,
+                    'signature_position' => $signaturePosition,
+                    'status' => SignatureRequest::STATUS_SIGNED,
+                    'signed_file_path' => $relativePath,
+                    'signed_at' => now(),
+                ]);
+            }
         } catch (Throwable $e) {
             if ($absolutePath !== null && file_exists($absolutePath)) {
                 @unlink($absolutePath);

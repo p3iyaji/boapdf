@@ -1,21 +1,151 @@
 @extends('layouts.app')
 
-@section('title', 'Sign - '.$document->original_name)
+@section('title', ($guestMode ?? false) ? 'Sign document' : 'Sign - '.$document->original_name)
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Sign PDF</h1>
-    <p class="text-gray-600 mt-1">
-        Draw a signature, add typed text, and/or upload a logo—each is separate and optional. Choose what to place, click the PDF, then apply. Drag overlays to move or resize.
-    </p>
-</div>
+@php
+    $guestMode = $guestMode ?? false;
+    $signatureRequests = $signatureRequests ?? collect();
+    $pendingCount = $signatureRequests->where('status', \App\Models\SignatureRequest::STATUS_PENDING)->count();
+    $signedCount = $signatureRequests->where('status', \App\Models\SignatureRequest::STATUS_SIGNED)->count();
+    $streamUrl = $guestMode
+        ? route('sign.guest.stream', $token)
+        : route('pdf.stream', $document);
+    $submitUrl = $guestMode
+        ? route('sign.guest.store', $token)
+        : route('pdf.sign.store', $document);
+@endphp
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-3"
+@if ($guestMode)
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+@endif
+
+<div class="mb-6" x-data="{ mode: @js(($guestMode || $signatureRequests->isEmpty()) ? 'sign' : (request()->query('tab') === 'invite' ? 'invite' : 'sign')) }">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+            @if ($guestMode)
+                <p class="text-sm font-medium text-emerald-700">Signature requested</p>
+                <h1 class="mt-1 text-2xl font-bold text-gray-800 md:text-3xl">Sign {{ $document->original_name }}</h1>
+                <p class="mt-2 text-gray-600">
+                    {{ $signatureRequest->requester_email }} asked
+                    {{ $signatureRequest->signer_name ? $signatureRequest->signer_name : 'you' }}
+                    to sign this PDF. Place your signature, then apply.
+                </p>
+            @else
+                <h1 class="text-2xl font-bold text-gray-800 md:text-3xl">Sign PDF</h1>
+                <p class="mt-1 truncate text-sm text-gray-500">{{ $document->original_name }}</p>
+                <p class="mt-2 text-gray-600">
+                    Sign it yourself, or invite others by email. Each person gets a secure link—no account required.
+                </p>
+            @endif
+        </div>
+        @unless ($guestMode)
+            <a href="{{ route('pdf.show', $document) }}" class="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Back to document</a>
+        @endunless
+    </div>
+
+    @unless ($guestMode)
+        <div class="mt-5 flex flex-wrap gap-2 border-b border-gray-200 pb-px">
+            <button type="button" @click="mode = 'sign'"
+                    class="rounded-t-lg px-4 py-2.5 text-sm font-semibold transition"
+                    :class="mode === 'sign' ? 'border border-b-white border-gray-200 bg-white text-emerald-800' : 'border border-transparent text-gray-600 hover:text-gray-900'">
+                Sign myself
+            </button>
+            <button type="button" @click="mode = 'invite'"
+                    class="rounded-t-lg px-4 py-2.5 text-sm font-semibold transition"
+                    :class="mode === 'invite' ? 'border border-b-white border-gray-200 bg-white text-emerald-800' : 'border border-transparent text-gray-600 hover:text-gray-900'">
+                Request signatures
+                @if ($pendingCount > 0)
+                    <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ $pendingCount }} waiting</span>
+                @endif
+            </button>
+        </div>
+    @endunless
+
+    @if (! $guestMode && $signatureRequests->isNotEmpty())
+        <div class="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-sm font-semibold text-gray-800">Signing progress</h2>
+                <p class="text-xs text-gray-500">{{ $signedCount }} of {{ $signatureRequests->count() }} complete</p>
+            </div>
+            <ul class="divide-y divide-gray-100">
+                @foreach ($signatureRequests as $req)
+                    <li class="flex flex-wrap items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0">
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-gray-800">
+                                {{ $req->signer_name ?: $req->signer_email }}
+                            </p>
+                            @if ($req->signer_name)
+                                <p class="truncate text-xs text-gray-500">{{ $req->signer_email }}</p>
+                            @endif
+                        </div>
+                        @if ($req->status === \App\Models\SignatureRequest::STATUS_SIGNED)
+                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Signed</span>
+                        @elseif ($req->isExpired())
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">Expired</span>
+                        @else
+                            <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Waiting</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @unless ($guestMode)
+    <div x-show="mode === 'invite'" x-cloak class="mt-4" x-data="inviteSignersForm()">
+        <div class="rounded-xl bg-white p-5 shadow sm:p-6">
+            <h2 class="text-lg font-semibold text-gray-800">Invite people to sign</h2>
+            <p class="mt-1 text-sm text-gray-600">They’ll receive an email with a private link. Signatures are applied one after another onto the same PDF.</p>
+
+            <form method="POST" action="{{ route('pdf.sign.invite', $document) }}" class="mt-5 space-y-4">
+                @csrf
+                <template x-for="(signer, index) in signers" :key="index">
+                    <div class="grid grid-cols-1 gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
+                        <label class="block text-sm">
+                            <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Name</span>
+                            <input type="text" :name="'signers['+index+'][name]'" x-model="signer.name" maxlength="120"
+                                   placeholder="Optional"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </label>
+                        <label class="block text-sm">
+                            <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Email</span>
+                            <input type="email" :name="'signers['+index+'][email]'" x-model="signer.email" required maxlength="255"
+                                   placeholder="name@example.com"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </label>
+                        <div class="flex items-end">
+                            <button type="button" @click="removeSigner(index)" :disabled="signers.length <= 1"
+                                    class="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" @click="addSigner()"
+                            class="inline-flex min-h-10 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:border-emerald-400 hover:text-emerald-800">
+                        + Add another signer
+                    </button>
+                    <button type="submit"
+                            class="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700">
+                        Send signature requests
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endunless
+
+<div x-show="mode === 'sign' || {{ $guestMode ? 'true' : 'false' }}"
+     class="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-3"
      x-data="signer({
-        streamUrl: @js(route('pdf.stream', $document)),
-        submitUrl: @js(route('pdf.sign.store', $document)),
+        streamUrl: @js($streamUrl),
+        submitUrl: @js($submitUrl),
         csrf: @js(csrf_token()),
         totalPages: {{ (int) $document->pages }},
+        guestMode: @js($guestMode),
      })"
      x-init="init()">
 
@@ -142,6 +272,12 @@
     </div>
 
     <aside class="space-y-4 rounded-xl bg-white p-5 shadow">
+        <ol class="mb-1 space-y-1 text-xs text-gray-500">
+            <li><span class="font-semibold text-gray-700">Step 1</span> — Create a signature</li>
+            <li><span class="font-semibold text-gray-700">Step 2</span> — Click the PDF to place it</li>
+            <li><span class="font-semibold text-gray-700">Step 3</span> — Apply when ready</li>
+        </ol>
+
         <div class="rounded-lg border border-gray-100 p-3">
             <h3 class="mb-2 font-semibold text-gray-800">1. Draw <span class="font-normal text-gray-500">(optional)</span></h3>
             <div class="rounded-lg border border-gray-300 bg-white">
@@ -235,16 +371,24 @@
         <form @submit.prevent="submit()" class="border-t border-gray-100 pt-2">
             <button type="submit"
                     :disabled="!canSubmit() || submitting"
-                    class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
-                <span x-show="!submitting">Apply to PDF</span>
+                    class="w-full rounded-lg bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                <span x-show="!submitting" x-text="guestMode ? 'Apply my signature' : 'Apply to PDF'"></span>
                 <span x-show="submitting">Applying&hellip;</span>
             </button>
             <p class="mt-2 text-xs text-red-600" x-show="errorMessage" x-text="errorMessage"></p>
+            <p class="mt-2 text-xs text-gray-500" x-show="!canSubmit() && !errorMessage">Place at least one drawing, typed text, or logo on the PDF to continue.</p>
         </form>
 
-        <a href="{{ route('pdf.show', $document) }}" class="block text-center text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+        @unless ($guestMode)
+            <a href="{{ route('pdf.show', $document) }}" class="block text-center text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+        @endunless
     </aside>
 </div>
+</div>
+
+@if ($guestMode)
+</div>
+@endif
 @endsection
 
 @push('head')
@@ -275,7 +419,22 @@
         };
     }
 
-    function signer({ streamUrl, submitUrl, csrf, totalPages }) {
+    function inviteSignersForm() {
+        return {
+            signers: [{ name: '', email: '' }],
+            addSigner() {
+                this.signers.push({ name: '', email: '' });
+            },
+            removeSigner(index) {
+                if (this.signers.length <= 1) {
+                    return;
+                }
+                this.signers.splice(index, 1);
+            },
+        };
+    }
+
+    function signer({ streamUrl, submitUrl, csrf, totalPages, guestMode = false }) {
         const PT_PER_MM = 72 / 25.4;
         const RASTER_ASPECT = 0.4;
 
@@ -292,7 +451,7 @@
         let dragEndHandler = null;
 
         return {
-            streamUrl, submitUrl, csrf,
+            streamUrl, submitUrl, csrf, guestMode,
             totalPages,
             page: 1,
             pageViewport: null,

@@ -94,6 +94,21 @@ it('rejects a merge that includes another user\'s document', function () {
         ->assertSessionHasErrors('documents.1');
 });
 
+it('shows the compress form with selectable documents and levels', function () {
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'original_name' => 'brochure.pdf',
+        'pages' => 4,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.compress.create', ['document' => $doc->id]))
+        ->assertSuccessful()
+        ->assertSee('Compress PDF', false)
+        ->assertSee('brochure.pdf', false)
+        ->assertSee('Recommended', false)
+        ->assertSee('Smallest', false);
+});
+
 it('compresses a document and records a successful ConversionLog', function () {
     Storage::disk('local')->put('uploads/big.pdf', str_repeat('x', 200));
     Storage::disk('local')->put('compressed/small.pdf', str_repeat('x', 80));
@@ -116,20 +131,47 @@ it('compresses a document and records a successful ConversionLog', function () {
         ->shouldReceive('countPages')
         ->andReturn(1);
 
-    $this->actingAs($this->user)
+    $response = $this->actingAs($this->user)
         ->post(route('pdf.compress.store'), [
             'document_id' => $source->id,
             'level' => 'recommended',
-        ])
-        ->assertRedirect();
+        ]);
 
-    expect(
-        Document::where('user_id', $this->user->id)
-            ->where('operation_type', Document::OP_COMPRESSED)
-            ->exists()
-    )->toBeTrue();
+    $compressed = Document::query()
+        ->where('user_id', $this->user->id)
+        ->where('operation_type', Document::OP_COMPRESSED)
+        ->first();
 
+    expect($compressed)->not->toBeNull();
     expect(ConversionLog::where('status', 'success')->exists())->toBeTrue();
+
+    $response
+        ->assertRedirect(route('pdf.show', $compressed))
+        ->assertSessionHas('success');
+
+    expect(session('success'))->toContain('% smaller');
+});
+
+it('shows compression savings on the document page', function () {
+    Storage::disk('local')->put('compressed/result.pdf', str_repeat('x', 80));
+
+    $doc = Document::factory()->compressed()->for($this->user)->create([
+        'file_path' => 'compressed/result.pdf',
+        'file_size' => 80,
+        'status' => Document::STATUS_COMPLETED,
+        'metadata' => [
+            'level' => 'recommended',
+            'original_size' => 200,
+            'new_size' => 80,
+            'method' => 'ghostscript',
+        ],
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.show', $doc))
+        ->assertSuccessful()
+        ->assertSee('Compression result', false)
+        ->assertSee('smaller than the original', false);
 });
 
 it('returns compression errors when the pdf cannot be compressed', function () {

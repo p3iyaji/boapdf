@@ -38,7 +38,7 @@
 >
     <h2 class="text-lg font-semibold text-teal-950">Scan from camera</h2>
     <p class="mt-1 text-sm text-teal-900/70">
-        Photograph one or more pages with your device camera. Each capture becomes a PDF page (works best on phones over HTTPS or localhost).
+        Photograph one or more pages with your device camera or photo library. Each image becomes a PDF page.
     </p>
     <div class="mt-4 flex flex-wrap items-center gap-2">
         <button
@@ -50,8 +50,34 @@
             <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Open camera
         </button>
+        <button
+            type="button"
+            x-show="!open"
+            @click="pickPhotos()"
+            class="inline-flex items-center gap-2 rounded-lg border border-teal-900/20 bg-white px-4 py-2.5 text-sm font-semibold text-teal-900 shadow-sm hover:bg-teal-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        >
+            Choose photos
+        </button>
     </div>
     <p x-show="error" x-cloak class="mt-3 text-sm text-red-700" x-text="error"></p>
+
+    {{-- Native camera / gallery: works on every mobile browser without getUserMedia --}}
+    <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="sr-only"
+        x-ref="nativeCamera"
+        @change="onNativePhotos($event)"
+    />
+    <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        multiple
+        class="sr-only"
+        x-ref="photoPicker"
+        @change="onNativePhotos($event)"
+    />
 
     <div
         x-show="open"
@@ -71,13 +97,35 @@
                 </button>
             </div>
 
-            <div class="mt-3 overflow-hidden rounded-xl bg-black">
+            <div x-show="mode === 'live'" class="mt-3 overflow-hidden rounded-xl bg-black">
                 <video x-ref="video" playsinline muted autoplay class="mx-auto max-h-64 w-full object-contain sm:max-h-80"></video>
             </div>
             <canvas x-ref="canvas" class="hidden" width="2" height="2"></canvas>
 
             <div class="mt-4 flex flex-wrap gap-2">
-                <button type="button" @click="capturePage()" class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-500">Capture page</button>
+                <button
+                    type="button"
+                    x-show="mode === 'live'"
+                    @click="capturePage()"
+                    class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-500"
+                >
+                    Capture page
+                </button>
+                <button
+                    type="button"
+                    x-show="mode !== 'live'"
+                    @click="useNativeCamera()"
+                    class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-500"
+                >
+                    Take photo
+                </button>
+                <button
+                    type="button"
+                    @click="pickPhotos()"
+                    class="rounded-lg border border-teal-900/20 px-4 py-2 text-sm font-medium text-teal-900"
+                >
+                    Add photos
+                </button>
                 <button type="button" @click="removeLast()" :disabled="frames.length === 0" class="rounded-lg border border-teal-900/20 px-4 py-2 text-sm font-medium text-teal-900 disabled:opacity-40">Remove last</button>
                 <button type="button" @click="clearAll()" :disabled="frames.length === 0" class="rounded-lg border border-teal-900/20 px-4 py-2 text-sm font-medium text-teal-900 disabled:opacity-40">Clear all</button>
             </div>
@@ -201,40 +249,195 @@
 function cameraCapture() {
     return {
         open: false,
+        mode: 'photos',
         stream: null,
         frames: [],
         error: null,
         title: '',
+        getUserMediaFn() {
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+                return (constraints) => navigator.mediaDevices.getUserMedia(constraints);
+            }
+
+            const legacy = navigator.getUserMedia
+                || navigator.webkitGetUserMedia
+                || navigator.mozGetUserMedia
+                || navigator.msGetUserMedia;
+
+            if (!legacy) {
+                return null;
+            }
+
+            return (constraints) => new Promise((resolve, reject) => {
+                legacy.call(navigator, constraints, resolve, reject);
+            });
+        },
+        canUseLiveCamera() {
+            return window.isSecureContext !== false && typeof this.getUserMediaFn() === 'function';
+        },
         async startCamera() {
             this.error = null;
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                this.error = 'Your browser does not support camera capture.';
+
+            if (this.canUseLiveCamera()) {
+                try {
+                    await this.startLiveCamera();
+                    return;
+                } catch (e) {
+                    // Fall through to the native camera / file picker path.
+                }
+            }
+
+            this.useNativeCamera();
+        },
+        async startLiveCamera() {
+            const getUserMedia = this.getUserMediaFn();
+            if (!getUserMedia) {
+                throw new Error('getUserMedia unavailable');
+            }
+
+            const attempts = [
+                { video: { facingMode: { ideal: 'environment' } }, audio: false },
+                { video: { facingMode: 'environment' }, audio: false },
+                { video: true, audio: false },
+            ];
+
+            let lastError = null;
+            for (const constraints of attempts) {
+                try {
+                    this.stream = await getUserMedia(constraints);
+                    this.mode = 'live';
+                    this.open = true;
+                    await this.$nextTick();
+                    const video = this.$refs.video;
+                    if (video) {
+                        if ('srcObject' in video) {
+                            video.srcObject = this.stream;
+                        } else {
+                            video.src = URL.createObjectURL(this.stream);
+                        }
+                        video.setAttribute('playsinline', 'true');
+                        video.muted = true;
+                        await video.play().catch(() => {});
+                    }
+                    return;
+                } catch (e) {
+                    lastError = e;
+                    this.stopStream();
+                }
+            }
+
+            throw lastError || new Error('Camera unavailable');
+        },
+        useNativeCamera() {
+            this.error = null;
+            this.mode = 'photos';
+            const input = this.$refs.nativeCamera;
+            if (!input) {
+                this.error = 'Camera input is unavailable in this browser.';
                 return;
             }
-            try {
-                this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
-                    audio: false,
-                });
-                this.open = true;
-                await this.$nextTick();
-                const v = this.$refs.video;
-                if (v) {
-                    v.srcObject = this.stream;
-                    await v.play().catch(() => {});
-                }
-            } catch (e) {
-                this.error = 'Camera blocked or unavailable. Allow camera access and use HTTPS (or localhost).';
+            input.value = '';
+            input.click();
+        },
+        pickPhotos() {
+            this.error = null;
+            const input = this.$refs.photoPicker;
+            if (!input) {
+                this.error = 'Photo picker is unavailable in this browser.';
+                return;
             }
+            input.value = '';
+            input.click();
+        },
+        async onNativePhotos(event) {
+            const files = Array.from(event.target.files || []);
+            if (files.length === 0) {
+                return;
+            }
+
+            this.mode = 'photos';
+            this.stopStream();
+            this.open = true;
+            this.error = null;
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '')) {
+                    continue;
+                }
+
+                try {
+                    const normalized = await this.normalizeImageFile(file);
+                    this.frames.push(normalized);
+                } catch (e) {
+                    this.error = 'Could not read one of the selected photos. Try a JPEG or PNG.';
+                }
+            }
+
+            if (this.frames.length === 0 && !this.error) {
+                this.error = 'No usable photos were selected. Try JPEG or PNG images.';
+            }
+
+            event.target.value = '';
+        },
+        normalizeImageFile(file) {
+            return new Promise((resolve, reject) => {
+                // Server PDF builder accepts JPEG/PNG only — pass those through.
+                if (file.type === 'image/jpeg' || file.type === 'image/png') {
+                    resolve({
+                        preview: URL.createObjectURL(file),
+                        file: file instanceof File
+                            ? file
+                            : new File([file], file.name || ('page-' + (this.frames.length + 1) + '.jpg'), { type: file.type }),
+                    });
+                    return;
+                }
+
+                // Convert webp/heic/etc. to JPEG when the browser can decode them.
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width;
+                    canvas.height = img.naturalHeight || img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx || !canvas.width || !canvas.height) {
+                        URL.revokeObjectURL(url);
+                        reject(new Error('Invalid image'));
+                        return;
+                    }
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        URL.revokeObjectURL(url);
+                        if (!blob) {
+                            reject(new Error('Could not convert image'));
+                            return;
+                        }
+                        const name = 'page-' + (this.frames.length + 1) + '.jpg';
+                        resolve({
+                            preview: URL.createObjectURL(blob),
+                            file: new File([blob], name, { type: 'image/jpeg' }),
+                        });
+                    }, 'image/jpeg', 0.9);
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Could not load image'));
+                };
+                img.src = url;
+            });
         },
         stopStream() {
             if (this.stream) {
                 this.stream.getTracks().forEach((t) => t.stop());
                 this.stream = null;
             }
-            const v = this.$refs.video;
-            if (v) {
-                v.srcObject = null;
+            const video = this.$refs.video;
+            if (video) {
+                video.srcObject = null;
+                if (video.src && video.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(video.src);
+                }
+                video.removeAttribute('src');
             }
         },
         closeModal() {
@@ -246,6 +449,7 @@ function cameraCapture() {
             });
             this.frames = [];
             this.error = null;
+            this.mode = 'photos';
             this.open = false;
         },
         capturePage() {
@@ -287,15 +491,29 @@ function cameraCapture() {
         },
         submitCapture() {
             if (this.frames.length === 0) {
-                this.error = 'Add at least one page (Capture page).';
+                this.error = 'Add at least one page before saving.';
                 return;
             }
             const form = this.$refs.captureForm;
             const input = this.$refs.cameraFiles;
+            if (!form || !input) {
+                this.error = 'Upload form is unavailable. Refresh and try again.';
+                return;
+            }
+
+            if (typeof DataTransfer === 'undefined') {
+                this.error = 'This browser cannot attach captured photos. Use Choose photos, then try again.';
+                return;
+            }
+
             const dt = new DataTransfer();
             this.frames.forEach((f) => dt.items.add(f.file));
             input.files = dt.files;
-            form.requestSubmit();
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
         },
     };
 }
