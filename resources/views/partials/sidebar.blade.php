@@ -116,6 +116,18 @@
                     <span>{{ $c['label'] }}</span>
                 </a>
 
+                {{-- Create — hidden for now
+                @php($cr = $navItem('pdf.create.create', 'Create', 'M12 4v16m8-8H4'))
+                <a href="{{ route('pdf.create.create') }}" class="{{ $cr['classes'] }}" @click="sidebarOpen = false">
+                    <svg class="h-5 w-5 shrink-0 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $cr['icon'] }}">
+                        </path>
+                    </svg>
+                    <span>{{ $cr['label'] }}</span>
+                </a>
+                --}}
+
                 {{-- @php($cv = $navItem('pdf.convert.create', 'Convert', 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582
                 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'))
                 <a href="{{ route('pdf.convert.create') }}" class="{{ $cv['classes'] }}" @click="sidebarOpen = false">
@@ -126,6 +138,16 @@
                     </svg>
                     <span>{{ $cv['label'] }}</span>
                 </a> --}}
+
+                @php($pw = $navItem('password.edit', 'Change password', 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'))
+                <a href="{{ route('password.edit') }}" class="{{ $pw['classes'] }}" @click="sidebarOpen = false">
+                    <svg class="h-5 w-5 shrink-0 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $pw['icon'] }}">
+                        </path>
+                    </svg>
+                    <span>{{ $pw['label'] }}</span>
+                </a>
 
                 @if (Auth::user()->isAdmin())
                     @php($aActive = request()->routeIs('admin.*'))

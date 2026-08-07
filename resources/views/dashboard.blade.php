@@ -58,16 +58,6 @@
         <p class="text-sm leading-relaxed text-gray-600">Shrink PDFs for email and sharing — pick a quality level and see how much you save.</p>
     </a>
 
-    <a href="{{ route('pdf.convert.create') }}" class="block rounded-xl bg-white p-5 shadow transition hover:shadow-lg sm:p-6">
-        <div class="mb-3 flex items-center gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </div>
-            <h3 class="font-semibold text-gray-800">Convert</h3>
-        </div>
-        <p class="text-sm leading-relaxed text-gray-600">Export PDFs to TXT, HTML, DOCX, JPG or PNG.</p>
-    </a>
-
     <a href="{{ route('pdf.index') }}" class="block rounded-xl bg-white p-5 shadow transition hover:shadow-lg sm:p-6">
         <div class="mb-3 flex items-center gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
