@@ -141,18 +141,25 @@
                 />
             </label>
 
-            <p class="mt-2 text-xs text-teal-800/70"><span x-text="frames.length"></span> page(s) queued — tap a page to edit size</p>
+            <p class="mt-2 text-sm font-medium text-teal-950" x-show="frames.length > 0 && !editing">
+                <span x-text="frames.length"></span> page(s) queued — tap a page below to crop &amp; zoom for full-screen signing
+            </p>
+            <p class="mt-2 text-xs text-teal-800/70" x-show="frames.length === 0">Capture or add photos, then edit each page size before saving.</p>
 
-            <div class="mt-3 grid max-h-32 grid-cols-4 gap-2 overflow-y-auto sm:max-h-40" x-show="frames.length > 0 && !editing">
+            <div class="mt-3 grid max-h-48 grid-cols-2 gap-3 overflow-y-auto sm:max-h-56 sm:grid-cols-3" x-show="frames.length > 0 && !editing">
                 <template x-for="(f, i) in frames" :key="i">
                     <button
                         type="button"
-                        class="group relative aspect-square overflow-hidden rounded-lg border border-teal-900/10 bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        class="overflow-hidden rounded-lg border-2 border-amber-500/70 bg-white text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                         @click="openEditor(i)"
                         :title="'Edit page ' + (i + 1) + ' size'"
                     >
-                        <img :src="f.preview" alt="" class="h-full w-full object-cover" />
-                        <span class="absolute inset-x-0 bottom-0 bg-teal-950/70 px-1 py-0.5 text-center text-[10px] font-medium text-amber-50 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">Edit size</span>
+                        <div class="aspect-[3/4] overflow-hidden bg-stone-100">
+                            <img :src="f.preview" alt="" class="h-full w-full object-cover" />
+                        </div>
+                        <span class="block bg-amber-600 px-2 py-1.5 text-center text-xs font-semibold text-white">
+                            Edit size — page <span x-text="i + 1"></span>
+                        </span>
                     </button>
                 </template>
             </div>
@@ -456,6 +463,8 @@ function cameraCapture() {
 
             if (this.frames.length === 0 && !this.error) {
                 this.error = 'No usable photos were selected. Try JPEG or PNG images.';
+            } else if (this.frames.length > 0) {
+                this.openEditor(this.frames.length - 1);
             }
 
             event.target.value = '';
@@ -555,6 +564,7 @@ function cameraCapture() {
                 const preview = URL.createObjectURL(blob);
                 this.frames.push({ preview, file });
                 this.error = null;
+                this.openEditor(this.frames.length - 1);
             }, 'image/jpeg', 0.9);
         },
         removeLast() {
