@@ -1,8 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\ConversionLogController as AdminConversionLogController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
+use App\Http\Controllers\Admin\SignatureRequestController as AdminSignatureRequestController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompressController;
 use App\Http\Controllers\ConvertController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GuestSignatureController;
 use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordResetController;
@@ -43,48 +49,72 @@ Route::middleware('guest')->group(function (): void {
         ->name('password.update');
 });
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
-    Route::prefix('pdf')->name('pdf.')->group(function (): void {
-        Route::get('/', [PdfController::class, 'index'])->name('index');
-        Route::post('/', [PdfController::class, 'upload'])
-            ->middleware('throttle:pdf-upload')
-            ->name('upload');
-        Route::post('/camera', [PdfController::class, 'storeFromCamera'])
-            ->middleware('throttle:pdf-upload')
-            ->name('upload.camera');
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])
+        ->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
 
-        Route::get('/merge', [MergeController::class, 'create'])->name('merge.create');
-        Route::post('/merge', [MergeController::class, 'store'])
-            ->middleware('throttle:pdf-heavy')
-            ->name('merge.store');
+    Route::middleware('verified')->group(function (): void {
+        Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
-        Route::get('/compress', [CompressController::class, 'create'])->name('compress.create');
-        Route::post('/compress', [CompressController::class, 'store'])
-            ->middleware('throttle:pdf-heavy')
-            ->name('compress.store');
+        Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): void {
+            Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('/convert', [ConvertController::class, 'create'])->name('convert.create');
-        Route::post('/convert', [ConvertController::class, 'store'])
-            ->middleware('throttle:pdf-heavy')
-            ->name('convert.store');
+            Route::post('users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
+            Route::patch('users/{user}/activation', [AdminUserController::class, 'updateActivation'])->name('users.activation');
+            Route::resource('users', AdminUserController::class);
 
-        Route::get('/{document}', [PdfController::class, 'show'])->name('show');
-        Route::get('/{document}/stream', [PdfController::class, 'stream'])->name('stream');
-        Route::get('/{document}/download', [PdfController::class, 'download'])->name('download');
-        Route::delete('/{document}', [PdfController::class, 'destroy'])->name('destroy');
+            Route::resource('documents', AdminDocumentController::class)->only(['index', 'show', 'destroy']);
+            Route::resource('signature-requests', AdminSignatureRequestController::class)->only(['index', 'show', 'destroy']);
+            Route::get('conversion-logs', AdminConversionLogController::class)->name('conversion-logs.index');
+        });
 
-        Route::get('/{document}/sign', [SignatureController::class, 'create'])->name('sign.create');
-        Route::post('/{document}/sign', [SignatureController::class, 'store'])
-            ->middleware('throttle:pdf-heavy')
-            ->name('sign.store');
-        Route::post('/{document}/sign/invite', [SignatureController::class, 'invite'])
-            ->middleware('throttle:6,1')
-            ->name('sign.invite');
-        Route::delete('/{document}/sign/invite/{signatureRequest}', [SignatureController::class, 'destroyInvite'])
-            ->middleware('throttle:30,1')
-            ->name('sign.invite.destroy');
+        Route::prefix('pdf')->name('pdf.')->group(function (): void {
+            Route::get('/', [PdfController::class, 'index'])->name('index');
+            Route::post('/', [PdfController::class, 'upload'])
+                ->middleware('throttle:pdf-upload')
+                ->name('upload');
+            Route::post('/camera', [PdfController::class, 'storeFromCamera'])
+                ->middleware('throttle:pdf-upload')
+                ->name('upload.camera');
+
+            Route::get('/merge', [MergeController::class, 'create'])->name('merge.create');
+            Route::post('/merge', [MergeController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('merge.store');
+
+            Route::get('/compress', [CompressController::class, 'create'])->name('compress.create');
+            Route::post('/compress', [CompressController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('compress.store');
+
+            Route::get('/convert', [ConvertController::class, 'create'])->name('convert.create');
+            Route::post('/convert', [ConvertController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('convert.store');
+
+            Route::get('/{document}', [PdfController::class, 'show'])->name('show');
+            Route::get('/{document}/stream', [PdfController::class, 'stream'])->name('stream');
+            Route::get('/{document}/download', [PdfController::class, 'download'])->name('download');
+            Route::delete('/{document}', [PdfController::class, 'destroy'])->name('destroy');
+
+            Route::get('/{document}/sign', [SignatureController::class, 'create'])->name('sign.create');
+            Route::post('/{document}/sign', [SignatureController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('sign.store');
+            Route::post('/{document}/sign/invite', [SignatureController::class, 'invite'])
+                ->middleware('throttle:6,1')
+                ->name('sign.invite');
+            Route::delete('/{document}/sign/invite/{signatureRequest}', [SignatureController::class, 'destroyInvite'])
+                ->middleware('throttle:30,1')
+                ->name('sign.invite.destroy');
+        });
     });
 });

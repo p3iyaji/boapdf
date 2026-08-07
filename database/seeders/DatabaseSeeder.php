@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $this->call(AdminUserSeeder::class);
+
         if (! User::where('email', 'demo@boapdf.test')->exists()) {
             User::create([
                 'name' => 'Demo User',

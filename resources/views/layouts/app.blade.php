@@ -15,29 +15,38 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-accent-50 via-canvas-100 to-brand-100/90 font-sans text-canvas-900 antialiased">
     @auth
-        @include('partials.sidebar')
-        <main class="min-h-screen min-w-0 max-w-full overflow-x-hidden px-4 pb-8 max-lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+1rem)] lg:ml-64 lg:px-8 lg:pb-10 lg:pt-8 md:px-6">
+        @if (request()->routeIs('verification.*'))
             @if (session('success'))
-                <div class="mb-4 rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm shadow-brand-950/5 backdrop-blur-sm">
+                <div class="mx-auto mt-4 max-w-md rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm">
                     {{ session('success') }}
                 </div>
             @endif
-            @if (session('status'))
-                <div class="mb-4 rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm shadow-brand-950/5 backdrop-blur-sm">
-                    {{ session('status') }}
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="mb-4 rounded-boa-lg border border-danger-200/90 bg-danger-50/95 px-4 py-3 text-danger-900 shadow-sm backdrop-blur-sm">
-                    <ul class="list-disc space-y-1 pl-5 text-sm">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
             @yield('content')
-        </main>
+        @else
+            @include('partials.sidebar')
+            <main class="min-h-screen min-w-0 max-w-full overflow-x-hidden px-4 pb-8 max-lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+1rem)] lg:ml-64 lg:px-8 lg:pb-10 lg:pt-8 md:px-6">
+                @if (session('success'))
+                    <div class="mb-4 rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm shadow-brand-950/5 backdrop-blur-sm">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if (session('status'))
+                    <div class="mb-4 rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm shadow-brand-950/5 backdrop-blur-sm">
+                        {{ session('status') }}
+                    </div>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-4 rounded-boa-lg border border-danger-200/90 bg-danger-50/95 px-4 py-3 text-danger-900 shadow-sm backdrop-blur-sm">
+                        <ul class="list-disc space-y-1 pl-5 text-sm">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                @yield('content')
+            </main>
+        @endif
     @else
         @yield('content')
     @endauth
