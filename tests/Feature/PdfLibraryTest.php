@@ -29,7 +29,11 @@ it('includes the camera capture alpine helper in the library page', function () 
         ->assertSee('x-data="cameraCapture()"', false)
         ->assertSee('capture="environment"', false)
         ->assertSee('useNativeCamera()', false)
-        ->assertSee('Choose photos', false);
+        ->assertSee('Choose photos', false)
+        ->assertSee('openEditor(', false)
+        ->assertSee('applyEditor()', false)
+        ->assertSee('Fill page', false)
+        ->assertSee('Edit size', false);
 });
 
 it('accepts a PDF upload and stores a document row', function () {
