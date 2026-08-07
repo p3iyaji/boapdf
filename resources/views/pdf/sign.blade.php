@@ -79,13 +79,27 @@
                                 <p class="truncate text-xs text-gray-500">{{ $req->signer_email }}</p>
                             @endif
                         </div>
-                        @if ($req->status === \App\Models\SignatureRequest::STATUS_SIGNED)
-                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Signed</span>
-                        @elseif ($req->isExpired())
-                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">Expired</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Waiting</span>
-                        @endif
+                        <div class="flex shrink-0 items-center gap-2">
+                            @if ($req->status === \App\Models\SignatureRequest::STATUS_SIGNED)
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Signed</span>
+                            @elseif ($req->isExpired())
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">Expired</span>
+                                <form method="POST" action="{{ route('pdf.sign.invite.destroy', [$document, $req]) }}"
+                                      onsubmit="return confirm('Remove this expired invite?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-medium text-red-700 hover:text-red-900">Remove</button>
+                                </form>
+                            @else
+                                <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Waiting</span>
+                                <form method="POST" action="{{ route('pdf.sign.invite.destroy', [$document, $req]) }}"
+                                      onsubmit="return confirm(@js('Remove '.$req->signer_email.' from this signing request? Their link will stop working.'))">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-medium text-red-700 hover:text-red-900">Remove</button>
+                                </form>
+                            @endif
+                        </div>
                     </li>
                 @endforeach
             </ul>

@@ -83,5 +83,8 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/{document}/sign/invite', [SignatureController::class, 'invite'])
             ->middleware('throttle:6,1')
             ->name('sign.invite');
+        Route::delete('/{document}/sign/invite/{signatureRequest}', [SignatureController::class, 'destroyInvite'])
+            ->middleware('throttle:30,1')
+            ->name('sign.invite.destroy');
     });
 });

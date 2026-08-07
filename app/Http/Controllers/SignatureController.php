@@ -93,4 +93,23 @@ class SignatureController extends Controller
             return back()->withErrors(['signers' => SafeUserMessage::from($e, 'Could not send signature requests')]);
         }
     }
+
+    public function destroyInvite(Request $request, Document $document, SignatureRequest $signatureRequest): RedirectResponse
+    {
+        $this->authorize('update', $document);
+
+        try {
+            $this->signing->cancelInvite($document, $signatureRequest);
+
+            return redirect()
+                ->route('pdf.sign.create', ['document' => $document, 'tab' => 'invite'])
+                ->with('success', 'Removed '.$signatureRequest->signer_email.' from this signing request.');
+        } catch (Throwable $e) {
+            Log::error('Signature invite cancel failed', ['error' => $e->getMessage()]);
+
+            return back()->withErrors([
+                'signers' => SafeUserMessage::from($e, 'Could not remove this signer'),
+            ]);
+        }
+    }
 }

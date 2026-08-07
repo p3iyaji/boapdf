@@ -124,3 +124,4 @@
 #58 /Applications/Herd.app/Contents/Resources/valet/server.php(167): require('/Users/pauliyaj...')
 #59 {main}
 "} 
+[2026-08-07 05:07:15] testing.ERROR: Signature invite cancel failed {"error":"Signed requests cannot be removed."} 
