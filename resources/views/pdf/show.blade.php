@@ -18,6 +18,7 @@
             <a href="{{ route('pdf.compress.create', ['document' => $document->id]) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-accent-300 bg-accent-50 px-4 text-sm font-medium text-accent-900 hover:bg-accent-100 active:bg-accent-200">Compress</a>
         @endif
         @if ($document->isFileReady() && $document->mime_type === 'application/pdf')
+            <a href="{{ route('pdf.edit.create', $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-blue-300 bg-blue-50 px-4 text-sm font-medium text-blue-900 hover:bg-blue-100 active:bg-blue-200">Edit / fill</a>
             <a href="{{ route('pdf.sign.create', $document->operation_type === \App\Models\Document::OP_SIGNED && $document->parent_document_id ? $document->parent_document_id : $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 active:bg-emerald-800">Sign / invite</a>
         @endif
         <a href="{{ route('pdf.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800">Back to library</a>

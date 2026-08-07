@@ -21,7 +21,7 @@ Artisan::command('pdf:cleanup', function () {
     $disk = DocumentsDisk::disk();
     $removed = 0;
 
-    foreach (['merged', 'compressed', 'signed', 'converted', 'temp'] as $dir) {
+    foreach (['merged', 'compressed', 'signed', 'converted', 'edited', 'created', 'temp'] as $dir) {
         if (! $disk->exists($dir)) {
             continue;
         }
