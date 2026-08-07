@@ -70,6 +70,82 @@ it('skips duplicate pending invites for the same email', function () {
     Notification::assertNothingSent();
 });
 
+it('removes a pending signer from a document signing request', function () {
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $alice = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'alice@example.com',
+        'signer_name' => 'Alice',
+    ]);
+
+    $bob = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'bob@example.com',
+        'signer_name' => 'Bob',
+    ]);
+
+    $this->actingAs($this->user)
+        ->delete(route('pdf.sign.invite.destroy', [$doc, $alice]))
+        ->assertRedirect(route('pdf.sign.create', ['document' => $doc, 'tab' => 'invite']))
+        ->assertSessionHas('success');
+
+    expect(SignatureRequest::query()->whereKey($alice->id)->exists())->toBeFalse();
+    expect(SignatureRequest::query()->whereKey($bob->id)->exists())->toBeTrue();
+
+    $this->get(route('sign.guest.show', $alice->token))
+        ->assertRedirect(route('login'));
+});
+
+it('does not remove a signer who has already signed', function () {
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $signed = SignatureRequest::factory()->signed()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'alice@example.com',
+        'signer_name' => 'Alice',
+    ]);
+
+    $this->actingAs($this->user)
+        ->from(route('pdf.sign.create', $doc))
+        ->delete(route('pdf.sign.invite.destroy', [$doc, $signed]))
+        ->assertRedirect()
+        ->assertSessionHasErrors('signers');
+
+    expect(SignatureRequest::query()->whereKey($signed->id)->exists())->toBeTrue();
+});
+
+it('forbids removing a signer on another users document', function () {
+    $other = User::factory()->create();
+    Storage::disk('local')->put('uploads/secret.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($other)->create([
+        'file_path' => 'uploads/secret.pdf',
+    ]);
+
+    $invite = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $other->email,
+        'signer_email' => 'alice@example.com',
+    ]);
+
+    $this->actingAs($this->user)
+        ->delete(route('pdf.sign.invite.destroy', [$doc, $invite]))
+        ->assertForbidden();
+});
+
 it('lets a guest open a valid signing link', function () {
     Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
     $doc = Document::factory()->uploaded()->for($this->user)->create([

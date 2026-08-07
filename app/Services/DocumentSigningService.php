@@ -199,4 +199,17 @@ class DocumentSigningService
 
         return $request;
     }
+
+    public function cancelInvite(Document $source, SignatureRequest $signatureRequest): void
+    {
+        if ((int) $signatureRequest->source_document_id !== (int) $source->id) {
+            throw new InvalidArgumentException('This signature request does not belong to the document.');
+        }
+
+        if ($signatureRequest->isSigned()) {
+            throw new InvalidArgumentException('Signed requests cannot be removed.');
+        }
+
+        $signatureRequest->delete();
+    }
 }
