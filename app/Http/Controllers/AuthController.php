@@ -9,7 +9,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -30,13 +29,15 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->route('verification.notice');
     }
 
     public function authenticate(Request $request): RedirectResponse
@@ -46,15 +47,27 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('dashboard'));
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'The provided credentials do not match our records.'])
+                ->onlyInput('email');
         }
 
-        return back()
-            ->withErrors(['email' => 'The provided credentials do not match our records.'])
-            ->onlyInput('email');
+        $user = Auth::user();
+
+        if ($user === null || ! $user->isActive()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors(['email' => 'Your account has been deactivated. Contact an administrator.'])
+                ->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function dashboard(): View

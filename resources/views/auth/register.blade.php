@@ -11,6 +11,7 @@
             </div>
             <h1 class="font-display text-3xl font-bold tracking-tight text-brand-950">Create your account</h1>
             <p class="mt-1 text-sm text-brand-800/70">Begin your journey with documents in light</p>
+            <p class="mt-3 text-xs leading-relaxed text-brand-800/60">We'll email you a verification link to confirm your address before you can use the app.</p>
         </div>
 
         @if ($errors->any())
