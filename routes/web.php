@@ -10,6 +10,7 @@ use App\Http\Controllers\CompressController;
 use App\Http\Controllers\ConvertController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GuestSignatureController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PdfController;
@@ -27,8 +28,10 @@ Route::prefix('sign')->name('sign.guest.')->group(function (): void {
         ->name('store');
 });
 
+Route::get('/', HomeController::class)->name('home');
+
 Route::middleware('guest')->group(function (): void {
-    Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate'])
         ->middleware('throttle:login')
         ->name('authenticate');
