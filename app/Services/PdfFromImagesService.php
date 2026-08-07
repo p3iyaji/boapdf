@@ -10,7 +10,7 @@ use RuntimeException;
 class PdfFromImagesService
 {
     /**
-     * Build a single A4 PDF with one page per image, each image scaled to fit.
+     * Build a single A4 PDF with one page per image, each image scaled to fill the page (contain).
      *
      * @param  list<string>  $absoluteImagePaths  Readable paths to JPEG or PNG files.
      */
@@ -23,7 +23,7 @@ class PdfFromImagesService
         $pdf = new FPDF('P', 'mm', 'A4');
         $pageW = 210.0;
         $pageH = 297.0;
-        $margin = 8.0;
+        $margin = 0.0;
         $maxW = $pageW - 2 * $margin;
         $maxH = $pageH - 2 * $margin;
         $nominalDpi = 150.0;
@@ -41,7 +41,8 @@ class PdfFromImagesService
             [$pxW, $pxH] = $info;
             $imgWmm = $pxW * 25.4 / $nominalDpi;
             $imgHmm = $pxH * 25.4 / $nominalDpi;
-            $scale = min($maxW / max($imgWmm, 0.01), $maxH / max($imgHmm, 0.01), 1.0);
+            // Always scale to the largest size that still fits the page (up or down).
+            $scale = min($maxW / max($imgWmm, 0.01), $maxH / max($imgHmm, 0.01));
             $drawW = $imgWmm * $scale;
             $drawH = $imgHmm * $scale;
             $x = ($pageW - $drawW) / 2.0;
