@@ -35,6 +35,12 @@ class Document extends Model
 
     public const OP_CAPTURE = 'capture';
 
+    public const OP_EDITED = 'edited';
+
+    public const OP_FORM_FILLED = 'form_filled';
+
+    public const OP_CREATED = 'created';
+
     protected $fillable = [
         'user_id',
         'original_name',

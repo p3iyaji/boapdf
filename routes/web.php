@@ -8,10 +8,13 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompressController;
 use App\Http\Controllers\ConvertController;
+use App\Http\Controllers\CreateController;
+use App\Http\Controllers\EditController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GuestSignatureController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MergeController;
+use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SignatureController;
@@ -67,8 +70,18 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::middleware('verified')->group(function (): void {
         Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
+        Route::get('/password', [PasswordController::class, 'edit'])->name('password.edit');
+        Route::put('/password', [PasswordController::class, 'update'])
+            ->middleware('throttle:6,1')
+            ->name('password.change');
+
         Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): void {
             Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+            Route::get('/password', [PasswordController::class, 'editAdmin'])->name('password.edit');
+            Route::put('/password', [PasswordController::class, 'update'])
+                ->middleware('throttle:6,1')
+                ->name('password.update');
 
             Route::post('users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
             Route::patch('users/{user}/activation', [AdminUserController::class, 'updateActivation'])->name('users.activation');
@@ -103,10 +116,23 @@ Route::middleware(['auth', 'active'])->group(function (): void {
                 ->middleware('throttle:pdf-heavy')
                 ->name('convert.store');
 
+            Route::get('/create', [CreateController::class, 'create'])->name('create.create');
+            Route::post('/create', [CreateController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('create.store');
+
             Route::get('/{document}', [PdfController::class, 'show'])->name('show');
             Route::get('/{document}/stream', [PdfController::class, 'stream'])->name('stream');
             Route::get('/{document}/download', [PdfController::class, 'download'])->name('download');
             Route::delete('/{document}', [PdfController::class, 'destroy'])->name('destroy');
+
+            Route::get('/{document}/edit', [EditController::class, 'create'])->name('edit.create');
+            Route::post('/{document}/edit', [EditController::class, 'store'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('edit.store');
+            Route::post('/{document}/edit/form', [EditController::class, 'storeForm'])
+                ->middleware('throttle:pdf-heavy')
+                ->name('edit.form');
 
             Route::get('/{document}/sign', [SignatureController::class, 'create'])->name('sign.create');
             Route::post('/{document}/sign', [SignatureController::class, 'store'])

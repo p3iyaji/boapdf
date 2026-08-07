@@ -56,6 +56,21 @@ class DocumentFactory extends Factory
         return $this->state(fn () => ['operation_type' => Document::OP_CAPTURE]);
     }
 
+    public function edited(): static
+    {
+        return $this->state(fn () => ['operation_type' => Document::OP_EDITED]);
+    }
+
+    public function formFilled(): static
+    {
+        return $this->state(fn () => ['operation_type' => Document::OP_FORM_FILLED]);
+    }
+
+    public function createdDoc(): static
+    {
+        return $this->state(fn () => ['operation_type' => Document::OP_CREATED]);
+    }
+
     public function processing(): static
     {
         return $this->state(fn () => ['status' => Document::STATUS_PROCESSING]);
