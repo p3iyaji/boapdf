@@ -33,7 +33,8 @@ it('includes the camera capture alpine helper in the library page', function () 
         ->assertSee('openEditor(', false)
         ->assertSee('applyEditor()', false)
         ->assertSee('Fill page', false)
-        ->assertSee('Edit size', false);
+        ->assertSee('Edit size', false)
+        ->assertSee('crop &amp; zoom for full-screen signing', false);
 });
 
 it('accepts a PDF upload and stores a document row', function () {
