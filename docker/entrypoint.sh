@@ -75,6 +75,13 @@ case "$ROLE" in
     app)
         echo "[entrypoint] ROLE=app — migrate + optimize"
         run_as_app_user php artisan migrate --force --no-interaction
+        # DB_SEED defaults to true via compose; seeders are idempotent (updateOrCreate / exists checks).
+        if [ "${DB_SEED:-true}" = "true" ] || [ "${DB_SEED:-true}" = "1" ]; then
+            echo "[entrypoint] ROLE=app — db:seed"
+            run_as_app_user php artisan db:seed --force --no-interaction
+        else
+            echo "[entrypoint] ROLE=app — skipping db:seed (DB_SEED=${DB_SEED})"
+        fi
         run_as_app_user php artisan config:cache --no-interaction
         run_as_app_user php artisan route:cache --no-interaction
         run_as_app_user php artisan view:cache --no-interaction || true
