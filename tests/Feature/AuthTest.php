@@ -2,24 +2,39 @@
 
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
-it('shows the login page on /', function () {
+it('shows the marketing homepage on /', function () {
     $this->get('/')
+        ->assertOk()
+        ->assertSee(config('app.name'), false)
+        ->assertSee('Hold your documents steady', false);
+});
+
+it('shows the login page on /login', function () {
+    $this->get(route('login'))
         ->assertOk()
         ->assertSee('Sign in', false);
 });
 
-it('lets a user register and lands them on the dashboard', function () {
+it('lets a user register, sends a verification email, and shows the notice', function () {
+    Notification::fake();
+
     $this->post(route('register.store'), [
         'name' => 'Ada Lovelace',
         'email' => 'ada@example.com',
         'password' => 'secret-pass',
         'password_confirmation' => 'secret-pass',
-    ])->assertRedirect(route('dashboard'));
+    ])->assertRedirect(route('verification.notice'));
 
-    expect(User::where('email', 'ada@example.com')->exists())->toBeTrue();
+    $user = User::where('email', 'ada@example.com')->first();
+
+    expect($user)->not->toBeNull()
+        ->and($user->hasVerifiedEmail())->toBeFalse();
+
+    Notification::assertSentTo($user, VerifyEmail::class);
 });
 
 it('rejects bad credentials on login', function () {
