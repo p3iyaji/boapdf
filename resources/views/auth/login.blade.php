@@ -6,9 +6,9 @@
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
     <div class="w-full max-w-md rounded-2xl border border-brand-900/10 bg-canvas-50/95 p-8 shadow-2xl shadow-brand-950/20 backdrop-blur-md">
         <div class="mb-8 flex flex-col items-center text-center">
-            <div class="mb-4 rounded-2xl bg-brand-950/5 p-2 ring-1 ring-brand-900/10" aria-hidden="true">
+            <a href="{{ route('home') }}" class="mb-4 rounded-2xl bg-brand-950/5 p-2 ring-1 ring-brand-900/10 transition hover:bg-brand-950/10" aria-label="{{ config('app.name') }} home">
                 <x-boa-theme::mark size="lg" />
-            </div>
+            </a>
             <h1 class="font-display text-3xl font-bold tracking-tight text-brand-950">{{ config('app.name') }}</h1>
             <p class="mt-1 text-sm text-brand-800/70">Sign in to open your library of PDFs</p>
         </div>
@@ -52,6 +52,9 @@
             <p class="text-center text-sm text-brand-900/70">
                 Don't have an account?
                 <a href="{{ route('register') }}" class="font-semibold text-accent-700 hover:text-accent-600">Register</a>
+            </p>
+            <p class="text-center text-sm text-brand-900/55">
+                <a href="{{ route('home') }}" class="hover:text-brand-900">Back to home</a>
             </p>
         </form>
     </div>

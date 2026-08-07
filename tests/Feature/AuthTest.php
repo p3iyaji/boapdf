@@ -6,8 +6,15 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
-it('shows the login page on /', function () {
+it('shows the marketing homepage on /', function () {
     $this->get('/')
+        ->assertOk()
+        ->assertSee(config('app.name'), false)
+        ->assertSee('Hold your documents steady', false);
+});
+
+it('shows the login page on /login', function () {
+    $this->get(route('login'))
         ->assertOk()
         ->assertSee('Sign in', false);
 });

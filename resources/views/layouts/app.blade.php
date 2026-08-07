@@ -15,8 +15,8 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-accent-50 via-canvas-100 to-brand-100/90 font-sans text-canvas-900 antialiased">
     @auth
-        @if (request()->routeIs('verification.*'))
-            @if (session('success'))
+        @if (request()->routeIs('verification.*') || request()->routeIs('home'))
+            @if (session('success') && request()->routeIs('verification.*'))
                 <div class="mx-auto mt-4 max-w-md rounded-boa-lg border border-success-200/80 bg-success-50/95 px-4 py-3 text-success-950 shadow-sm">
                     {{ session('success') }}
                 </div>
