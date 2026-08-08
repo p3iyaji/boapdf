@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SignPdfRequest;
 use App\Models\Document;
+use App\Services\AuditLogger;
 use App\Services\DocumentSigningService;
 use App\Support\SafeUserMessage;
 use Illuminate\Contracts\View\View;
@@ -66,7 +67,7 @@ class GuestSignatureController extends Controller
         ]);
     }
 
-    public function store(SignPdfRequest $request, string $token): RedirectResponse
+    public function store(SignPdfRequest $request, string $token, AuditLogger $auditLogger): RedirectResponse
     {
         $signatureRequest = $this->signing->findOpenRequestByToken($token);
 
@@ -82,6 +83,22 @@ class GuestSignatureController extends Controller
             if ($signed->status === Document::STATUS_FAILED) {
                 return back()->withErrors(['sign' => 'Could not apply your signature. Please try again.']);
             }
+
+            $auditLogger->log(
+                action: 'signature.guest_signed',
+                description: 'Guest signed a document via invitation link.',
+                subject: $signatureRequest,
+                metadata: [
+                    'signer_email' => $signatureRequest->signer_email,
+                    'signer_name' => $signatureRequest->signer_name,
+                    'document_id' => $signatureRequest->source_document_id,
+                    'signed_document_id' => $signed->id,
+                ],
+                actor: null,
+                request: $request,
+                actorName: $signatureRequest->signer_name,
+                actorEmail: $signatureRequest->signer_email,
+            );
 
             return redirect()
                 ->route('sign.guest.thanks', $token)

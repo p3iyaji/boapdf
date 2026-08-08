@@ -3,11 +3,11 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-it('shows the change password form to authenticated users', function () {
+it('shows the change password form via profile', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->get(route('password.edit'))
+        ->get(route('profile.edit'))
         ->assertOk()
         ->assertSee('Change password', false);
 });
@@ -18,12 +18,12 @@ it('lets an authenticated user change their password', function () {
     ]);
 
     $this->actingAs($user)
-        ->put(route('password.change'), [
+        ->put(route('profile.password'), [
             'current_password' => 'old-secret',
             'password' => 'new-secret-pass',
             'password_confirmation' => 'new-secret-pass',
         ])
-        ->assertRedirect()
+        ->assertRedirect(route('profile.edit'))
         ->assertSessionHas('success');
 
     expect(Hash::check('new-secret-pass', $user->fresh()->password))->toBeTrue();
@@ -35,13 +35,13 @@ it('rejects password changes when the current password is wrong', function () {
     ]);
 
     $this->actingAs($user)
-        ->from(route('password.edit'))
-        ->put(route('password.change'), [
+        ->from(route('profile.edit'))
+        ->put(route('profile.password'), [
             'current_password' => 'wrong-secret',
             'password' => 'new-secret-pass',
             'password_confirmation' => 'new-secret-pass',
         ])
-        ->assertRedirect(route('password.edit'))
+        ->assertRedirect(route('profile.edit'))
         ->assertSessionHasErrors('current_password');
 
     expect(Hash::check('old-secret', $user->fresh()->password))->toBeTrue();
@@ -109,5 +109,5 @@ it('does not show the create menu in the sidebar', function () {
         ->get(route('dashboard'))
         ->assertOk()
         ->assertDontSee(route('pdf.create.create'), false)
-        ->assertSee(route('password.edit'), false);
+        ->assertSee(route('profile.edit'), false);
 });
