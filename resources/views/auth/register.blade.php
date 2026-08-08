@@ -46,6 +46,17 @@
                 <input type="password" id="password_confirmation" name="password_confirmation" required
                     class="w-full rounded-lg border border-brand-900/15 bg-white px-3 py-2 text-canvas-900 shadow-inner shadow-brand-950/5 focus:outline-none focus:ring-2 focus:ring-accent-500/80">
             </div>
+            <label class="flex items-start gap-2 text-sm leading-snug text-brand-900/80">
+                <input type="checkbox" name="terms" value="1" @checked(old('terms')) required
+                    class="mt-0.5 rounded border-brand-800/30 text-accent-600 focus:ring-accent-500">
+                <span>
+                    I agree to the
+                    <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-accent-700 hover:text-accent-600">Terms of Use</a>
+                    and
+                    <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-accent-700 hover:text-accent-600">Privacy Policy</a>.
+                    The Service is currently free for students and everyone else.
+                </span>
+            </label>
             <button type="submit" class="w-full rounded-lg bg-gradient-to-r from-brand-800 to-brand-950 py-2.5 font-semibold text-accent-50 shadow-lg shadow-brand-950/30 transition hover:from-brand-700 hover:to-brand-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2">
                 Create account
             </button>
@@ -54,6 +65,8 @@
                 <a href="{{ route('login') }}" class="font-semibold text-accent-700 hover:text-accent-600">Sign in</a>
             </p>
             <p class="text-center text-sm text-brand-900/55">
+                @include('partials.legal-links', ['linkClass' => 'hover:text-brand-900'])
+                <span class="mx-1.5 opacity-40" aria-hidden="true">·</span>
                 <a href="{{ route('home') }}" class="hover:text-brand-900">Back to home</a>
             </p>
         </form>

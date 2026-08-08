@@ -137,7 +137,10 @@
     </section>
 
     <footer class="relative z-10 border-t border-brand-200/10 px-6 py-8 text-center text-sm text-brand-300/60 sm:px-8">
-        &copy; {{ date('Y') }} {{ config('app.name') }}
+        <p>&copy; {{ date('Y') }} {{ config('app.name') }}</p>
+        <p class="mt-2">
+            @include('partials.legal-links', ['linkClass' => 'text-brand-200/70 underline decoration-brand-400/30 underline-offset-2 transition hover:text-accent-300 hover:decoration-accent-400/50'])
+        </p>
     </footer>
 </div>
 @endsection
