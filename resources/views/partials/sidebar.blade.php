@@ -167,6 +167,9 @@
 
         <div class="border-t border-brand-800/80 p-4 lg:p-6"
             style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));">
+            <p class="mb-3 text-center text-xs text-brand-300/55">
+                @include('partials.legal-links', ['linkClass' => 'text-brand-200/70 underline decoration-brand-500/30 underline-offset-2 transition hover:text-accent-200'])
+            </p>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"

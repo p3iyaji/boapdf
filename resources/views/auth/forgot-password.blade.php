@@ -41,6 +41,9 @@
                 Remember your password?
                 <a href="{{ route('login') }}" class="font-semibold text-accent-700 hover:text-accent-600">Sign in</a>
             </p>
+            <p class="text-center text-sm text-brand-900/55">
+                @include('partials.legal-links', ['linkClass' => 'hover:text-brand-900'])
+            </p>
         </form>
     </div>
 </div>

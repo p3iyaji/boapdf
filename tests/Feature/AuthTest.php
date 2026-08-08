@@ -27,6 +27,7 @@ it('lets a user register, sends a verification email, and shows the notice', fun
         'email' => 'ada@example.com',
         'password' => 'secret-pass',
         'password_confirmation' => 'secret-pass',
+        'terms' => '1',
     ])->assertRedirect(route('verification.notice'));
 
     $user = User::where('email', 'ada@example.com')->first();
