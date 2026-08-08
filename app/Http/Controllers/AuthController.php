@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\Document;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,14 @@ class AuthController extends Controller
 
         $user->sendEmailVerificationNotification();
 
+        app(AuditLogger::class)->log(
+            action: 'auth.register',
+            description: 'Registered a new account.',
+            subject: $user,
+            actor: $user,
+            request: $request,
+        );
+
         return redirect()->route('verification.notice');
     }
 
@@ -67,6 +76,14 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        app(AuditLogger::class)->log(
+            action: 'auth.login',
+            description: 'Signed in to the application.',
+            subject: $user,
+            actor: $user,
+            request: $request,
+        );
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -89,8 +106,20 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user !== null) {
+            $auditLogger->log(
+                action: 'auth.logout',
+                description: 'Signed out of the application.',
+                subject: $user,
+                actor: $user,
+                request: $request,
+            );
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

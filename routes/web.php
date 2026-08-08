@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\ConversionLogController as AdminConversionLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +72,17 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::middleware('verified')->group(function (): void {
         Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])
+            ->middleware('throttle:6,1')
+            ->name('profile.update');
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+            ->middleware('throttle:6,1')
+            ->name('profile.password');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])
+            ->middleware('throttle:6,1')
+            ->name('profile.destroy');
+
         Route::get('/password', [PasswordController::class, 'edit'])->name('password.edit');
         Route::put('/password', [PasswordController::class, 'update'])
             ->middleware('throttle:6,1')
@@ -82,6 +95,8 @@ Route::middleware(['auth', 'active'])->group(function (): void {
             Route::put('/password', [PasswordController::class, 'update'])
                 ->middleware('throttle:6,1')
                 ->name('password.update');
+
+            Route::get('audit-logs', AdminAuditLogController::class)->name('audit-logs.index');
 
             Route::post('users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
             Route::patch('users/{user}/activation', [AdminUserController::class, 'updateActivation'])->name('users.activation');

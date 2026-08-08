@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\ConversionLog;
 use App\Models\Document;
 use App\Models\SignatureRequest;
@@ -24,6 +25,8 @@ class DashboardController extends Controller
                 'signature_signed' => SignatureRequest::query()->where('status', SignatureRequest::STATUS_SIGNED)->count(),
                 'conversion_logs' => ConversionLog::query()->count(),
                 'conversion_failures' => ConversionLog::query()->where('status', '!=', 'success')->count(),
+                'audit_logs' => AuditLog::query()->count(),
+                'account_deletions' => AuditLog::query()->where('action', 'account.deleted')->count(),
             ],
         ]);
     }

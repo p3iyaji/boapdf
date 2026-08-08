@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -108,7 +109,7 @@ class UserController extends Controller
             ->with('success', 'User updated.');
     }
 
-    public function destroy(Request $request, User $user): RedirectResponse
+    public function destroy(Request $request, User $user, AuditLogger $auditLogger): RedirectResponse
     {
         if ($user->is($request->user())) {
             throw ValidationException::withMessages([
@@ -121,6 +122,18 @@ class UserController extends Controller
                 'user' => 'Cannot delete the last active administrator.',
             ]);
         }
+
+        $auditLogger->log(
+            action: 'admin.user.deleted',
+            description: 'Administrator soft-deleted a user account.',
+            subject: $user,
+            metadata: [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'was_admin' => $user->isAdmin(),
+            ],
+        );
 
         $user->delete();
 
