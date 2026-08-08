@@ -5,6 +5,7 @@
         ['route' => 'admin.documents.index', 'label' => 'Documents', 'match' => 'admin.documents.*'],
         ['route' => 'admin.signature-requests.index', 'label' => 'Signatures', 'match' => 'admin.signature-requests.*'],
         ['route' => 'admin.conversion-logs.index', 'label' => 'Conversion logs', 'match' => 'admin.conversion-logs.*'],
+        ['route' => 'admin.audit-logs.index', 'label' => 'Audit logs', 'match' => 'admin.audit-logs.*'],
         ['route' => 'admin.password.edit', 'label' => 'Change password', 'match' => 'admin.password.*'],
     ];
 @endphp
