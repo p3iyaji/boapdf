@@ -54,6 +54,8 @@
                 <a href="{{ route('register') }}" class="font-semibold text-accent-700 hover:text-accent-600">Register</a>
             </p>
             <p class="text-center text-sm text-brand-900/55">
+                @include('partials.legal-links', ['linkClass' => 'hover:text-brand-900'])
+                <span class="mx-1.5 opacity-40" aria-hidden="true">·</span>
                 <a href="{{ route('home') }}" class="hover:text-brand-900">Back to home</a>
             </p>
         </form>

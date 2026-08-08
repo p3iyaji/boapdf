@@ -6,6 +6,9 @@
 <div class="mb-6 md:mb-8">
     <h1 class="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">Your profile</h1>
     <p class="mt-2 text-sm text-brand-900/70 sm:text-base">Manage your account details, password, and data.</p>
+    <p class="mt-2 text-sm text-brand-800/60">
+        @include('partials.legal-links', ['linkClass' => 'font-medium text-accent-700 underline decoration-accent-400/40 underline-offset-2 hover:text-accent-600'])
+    </p>
 </div>
 
 <div class="space-y-6">

@@ -14,6 +14,7 @@ use App\Http\Controllers\EditController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GuestSignatureController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\PasswordResetController;
@@ -34,6 +35,9 @@ Route::prefix('sign')->name('sign.guest.')->group(function (): void {
 });
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
