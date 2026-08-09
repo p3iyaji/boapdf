@@ -224,7 +224,7 @@ it('allows multiple guests to sign the same document in sequence', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldReceive('createSignatureFromDataUrl')->twice()->andReturn($sigImg);
     $calls = 0;
-    $signer->shouldReceive('addSignature')
+    $signer->shouldReceive('addSignatures')
         ->twice()
         ->andReturnUsing(function () use (&$calls, $pathA, $pathB) {
             $calls++;
@@ -333,7 +333,7 @@ it('still self-signs and records source_document_id', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldReceive('createSignatureFromDataUrl')
         ->andReturn(Storage::disk('local')->path('temp/signature.png'));
-    $signer->shouldReceive('addSignature')
+    $signer->shouldReceive('addSignatures')
         ->andReturn(Storage::disk('local')->path('signed/result.pdf'));
 
     $this->mock(PdfConversionService::class)

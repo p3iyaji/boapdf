@@ -176,12 +176,12 @@
                         class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm disabled:opacity-50">Next &rarr;</button>
             </div>
             <div class="flex flex-col items-end gap-2 text-xs text-gray-500">
-                <div x-show="hasDrawingInk() || hasTypedText() || logoData" class="flex flex-wrap items-center justify-end gap-1.5">
+                <div x-show="hasDrawingInk() || canPlaceTyped() || logoData" class="flex flex-wrap items-center justify-end gap-1.5">
                     <span class="text-gray-500">Place on PDF:</span>
                     <button type="button" @click="placeMode = 'drawing'" :disabled="!hasDrawingInk()"
                             class="rounded border px-2 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40"
                             :class="placeMode === 'drawing' ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">Drawing</button>
-                    <button type="button" @click="placeMode = 'typed'" :disabled="!hasTypedText()"
+                    <button type="button" @click="placeMode = 'typed'" :disabled="!canPlaceTyped()"
                             class="rounded border px-2 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40"
                             :class="placeMode === 'typed' ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">Typed text</button>
                     <button type="button" @click="placeMode = 'logo'" :disabled="!logoData"
@@ -189,12 +189,12 @@
                             :class="placeMode === 'logo' ? 'border-sky-600 bg-sky-50 text-sky-800' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">Logo</button>
                 </div>
                 <p class="max-w-md text-right">
-                    <span x-show="!hasDrawingInk() && !hasTypedText() && !logoData" class="text-amber-700">Use the right panel to draw, type, or upload a logo, then pick what to place here.</span>
+                    <span x-show="!hasDrawingInk() && !canPlaceTyped() && !logoData" class="text-amber-700">Use the right panel to draw, type, or upload a logo, then pick what to place here.</span>
                     <span x-show="placeMode === 'drawing' && !drawPlacement && hasDrawingInk()">Click the PDF to place your drawing.</span>
-                    <span x-show="placeMode === 'typed' && !typedPlacement && hasTypedText()">Click the PDF to place typed text.</span>
+                    <span x-show="placeMode === 'typed' && hasTypedDraft() && !dragMode">Click the PDF to place this text — click again to add more.</span>
+                    <span x-show="placeMode === 'typed' && !hasTypedDraft() && typedTexts.length && !dragMode" class="font-medium text-violet-800">Select a placed text to move or resize, or type new text to place another.</span>
                     <span x-show="placeMode === 'logo' && logoData && !logoPlacement">Click the PDF to place your logo.</span>
                     <span x-show="placeMode === 'drawing' && drawPlacement && !dragMode" class="font-medium text-emerald-700">Drawing on page <span x-text="drawPlacement?.page"></span> — drag, resize, or × to remove from page.</span>
-                    <span x-show="placeMode === 'typed' && typedPlacement && !dragMode" class="font-medium text-violet-800">Text on page <span x-text="typedPlacement?.page"></span> — drag, resize, or × to remove from page.</span>
                     <span x-show="placeMode === 'logo' && logoPlacement && !dragMode" class="font-medium text-sky-700">Logo on page <span x-text="logoPlacement?.page"></span> — drag, resize, or × to remove from page.</span>
                     <span x-show="dragMode && dragTarget === 'drawing'" class="font-medium text-emerald-700" x-text="dragMode === 'resize' ? 'Resizing drawing…' : 'Moving drawing…'"></span>
                     <span x-show="dragMode && dragTarget === 'typed'" class="font-medium text-violet-800" x-text="dragMode === 'resize' ? 'Resizing text…' : 'Moving text…'"></span>
@@ -232,31 +232,31 @@
                         </svg>
                     </button>
                 </div>
-                <div x-show="typedPlacement && typedPlacement.page === page"
-                     x-cloak
-                     class="absolute z-20 touch-none select-none rounded border-2 border-violet-500/80 bg-white/40 shadow-sm"
-                     :class="dragMode === 'move' && dragTarget === 'typed' ? 'cursor-grabbing' : 'cursor-grab'"
-                     :style="typedPlacementBoxStyle()"
-                     @mousedown.prevent.stop="startMoveTyped($event)"
-                     @touchstart.prevent.stop="startMoveTyped($event)">
-                    <button type="button"
-                            class="absolute -left-1.5 -top-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-gray-700 text-xs font-bold text-white shadow hover:bg-gray-900"
-                            title="Remove text from page (keeps text in panel)"
-                            aria-label="Remove typed text from page"
-                            @click.stop.prevent="clearTypedFromPage()">&times;</button>
-                    <img :src="typedSignatureData" alt=""
-                         class="pointer-events-none block h-full w-full object-contain opacity-95">
-                    <button type="button"
-                            class="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-full border-2 border-white bg-violet-600 text-white shadow-md hover:bg-violet-700"
-                            aria-label="Resize typed text"
-                            title="Drag to resize"
-                            @mousedown.prevent.stop="startResizeTyped($event)"
-                            @touchstart.prevent.stop="startResizeTyped($event)">
-                        <svg class="h-3 w-3" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-                            <path d="M12 12H9v-3h3V12zM12 7H9V4h3v3zM7 12H4V9h3v3z"/>
-                        </svg>
-                    </button>
-                </div>
+                <template x-for="item in typedTextsOnPage()" :key="item.id">
+                    <div class="absolute z-20 touch-none select-none rounded border-2 bg-white/40 shadow-sm"
+                         :class="typedBoxClass(item)"
+                         :style="typedPlacementBoxStyle(item)"
+                         @mousedown.prevent.stop="startMoveTyped($event, item.id)"
+                         @touchstart.prevent.stop="startMoveTyped($event, item.id)">
+                        <button type="button"
+                                class="absolute -left-1.5 -top-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-gray-700 text-xs font-bold text-white shadow hover:bg-gray-900"
+                                title="Remove this text"
+                                aria-label="Remove typed text"
+                                @click.stop.prevent="removeTypedText(item.id)">&times;</button>
+                        <img :src="item.dataUrl" alt=""
+                             class="pointer-events-none block h-full w-full object-contain opacity-95">
+                        <button type="button"
+                                class="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-full border-2 border-white bg-violet-600 text-white shadow-md hover:bg-violet-700"
+                                aria-label="Resize typed text"
+                                title="Drag to resize"
+                                @mousedown.prevent.stop="startResizeTyped($event, item.id)"
+                                @touchstart.prevent.stop="startResizeTyped($event, item.id)">
+                            <svg class="h-3 w-3" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+                                <path d="M12 12H9v-3h3V12zM12 7H9V4h3v3zM7 12H4V9h3v3z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
                 <div x-show="logoPlacement && logoPlacement.page === page"
                      x-cloak
                      class="absolute z-10 touch-none select-none rounded border-2 border-sky-500/80 bg-white/40 shadow-sm"
@@ -287,8 +287,8 @@
 
     <aside class="space-y-4 rounded-xl bg-white p-5 shadow">
         <ol class="mb-1 space-y-1 text-xs text-gray-500">
-            <li><span class="font-semibold text-gray-700">Step 1</span> — Create a signature</li>
-            <li><span class="font-semibold text-gray-700">Step 2</span> — Click the PDF to place it</li>
+            <li><span class="font-semibold text-gray-700">Step 1</span> — Create a signature or text</li>
+            <li><span class="font-semibold text-gray-700">Step 2</span> — Click the PDF to place (add multiple texts anytime)</li>
             <li><span class="font-semibold text-gray-700">Step 3</span> — Apply when ready</li>
         </ol>
 
@@ -309,7 +309,8 @@
 
         <div class="rounded-lg border border-gray-100 p-3">
             <h3 class="mb-2 font-semibold text-gray-800">2. Typed text <span class="font-normal text-gray-500">(optional)</span></h3>
-            <label for="sig-text" class="mb-1 block text-sm font-medium text-gray-700">Text on the PDF</label>
+            <p class="mb-2 text-xs text-gray-500">Add as many text labels as you need — place each one, then type the next.</p>
+            <label for="sig-text" class="mb-1 block text-sm font-medium text-gray-700">Compose text</label>
             <textarea id="sig-text" x-model="typedText" rows="2" maxlength="500" placeholder="e.g. Approved, date, title"
                       class="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                       @input="renderTypedSignature()"></textarea>
@@ -335,11 +336,48 @@
             </div>
             <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" @click="clearTyped()" class="text-sm text-gray-600 hover:text-gray-800">Clear text</button>
-                    <button type="button" x-show="typedPlacement" x-cloak @click="clearTypedFromPage()" class="text-sm text-violet-800 hover:text-violet-950">Remove text from page</button>
+                    <button type="button" @click="clearTypedDraft()" class="text-sm text-gray-600 hover:text-gray-800">Clear draft</button>
+                    <button type="button" x-show="hasTypedDraft()" x-cloak @click="armTypedPlacement()"
+                            class="rounded border border-violet-300 bg-violet-50 px-2 py-0.5 text-sm font-medium text-violet-900 hover:bg-violet-100">
+                        Place on PDF
+                    </button>
                 </div>
-                <span class="text-xs text-gray-400" x-show="!typedText.trim()">No text yet</span>
-                <span class="text-xs font-medium text-violet-700" x-show="hasTypedText()">Ready to place</span>
+                <span class="text-xs text-gray-400" x-show="!hasTypedDraft()">No draft yet</span>
+                <span class="text-xs font-medium text-violet-700" x-show="hasTypedDraft()">Ready — click the PDF</span>
+            </div>
+
+            <div x-show="typedTexts.length" x-cloak class="mt-3 border-t border-gray-100 pt-3">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <h4 class="text-sm font-medium text-gray-800">
+                        Placed texts
+                        <span class="tabular-nums text-gray-500" x-text="'(' + typedTexts.length + ')'"></span>
+                    </h4>
+                    <button type="button" @click="clearAllTypedTexts()" class="text-xs text-violet-800 hover:text-violet-950">Remove all</button>
+                </div>
+                <ul class="max-h-40 space-y-1.5 overflow-y-auto">
+                    <template x-for="(item, index) in typedTexts" :key="item.id">
+                        <li>
+                            <button type="button"
+                                    class="flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition"
+                                    :class="selectedTypedId === item.id
+                                        ? 'border-violet-500 bg-violet-50 ring-1 ring-violet-300'
+                                        : 'border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50/50'"
+                                    @click="selectTypedText(item.id)">
+                                <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-100 text-[10px] font-semibold text-violet-800 tabular-nums"
+                                      x-text="index + 1"></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm text-gray-900" x-text="item.label"></span>
+                                    <span class="text-xs text-gray-500">Page <span x-text="item.page"></span></span>
+                                </span>
+                                <span role="button" tabindex="0"
+                                      class="shrink-0 rounded px-1.5 py-0.5 text-xs text-gray-500 hover:bg-white hover:text-red-600"
+                                      title="Remove"
+                                      @click.stop.prevent="removeTypedText(item.id)"
+                                      @keydown.enter.stop.prevent="removeTypedText(item.id)">&times;</span>
+                            </button>
+                        </li>
+                    </template>
+                </ul>
             </div>
         </div>
 
@@ -354,10 +392,12 @@
             </div>
             <div x-show="placeMode === 'typed'" x-cloak class="space-y-1">
                 <label class="flex items-center justify-between text-sm text-gray-700">
-                    <span>Text width (mm)</span>
-                    <input type="number" min="10" max="300" step="1" x-model.number="textWidthMm" @input="repositionTypedPixel()"
-                           class="w-24 rounded border border-gray-300 px-2 py-1 text-right">
+                    <span>Selected text width (mm)</span>
+                    <input type="number" min="10" max="300" step="1" x-model.number="textWidthMm" @input="repositionSelectedTypedPixel()"
+                           class="w-24 rounded border border-gray-300 px-2 py-1 text-right"
+                           :disabled="!selectedTypedPlacement()">
                 </label>
+                <p class="text-xs text-gray-400" x-show="!selectedTypedPlacement()">Select a placed text to resize, or set width before placing.</p>
             </div>
             <div x-show="placeMode === 'logo'" x-cloak class="space-y-1">
                 <label class="flex items-center justify-between text-sm text-gray-700">
@@ -477,11 +517,13 @@
             textFontPreset: 'script',
             textFontSize: 36,
             typedSignatureData: '',
+            typedTexts: [],
+            selectedTypedId: null,
+            nextTypedId: 1,
 
             drawPlacement: null,
             drawWidthMm: 60,
 
-            typedPlacement: null,
             textWidthMm: 60,
 
             placeMode: 'drawing',
@@ -504,7 +546,7 @@
                 if (this.hasDrawingInk()) {
                     return 'drawing';
                 }
-                if (this.hasTypedText()) {
+                if (this.canPlaceTyped()) {
                     return 'typed';
                 }
                 if (this.logoData) {
@@ -518,8 +560,120 @@
                 return this.hasInk;
             },
 
-            hasTypedText() {
-                return this.typedText.trim().length > 0;
+            hasTypedDraft() {
+                return this.typedText.trim().length > 0 && Boolean(this.typedSignatureData);
+            },
+
+            canPlaceTyped() {
+                return this.hasTypedDraft() || this.typedTexts.length > 0;
+            },
+
+            typedTextsOnPage() {
+                return this.typedTexts.filter((item) => item.page === this.page);
+            },
+
+            selectedTypedPlacement() {
+                if (this.selectedTypedId === null) {
+                    return null;
+                }
+
+                return this.typedTexts.find((item) => item.id === this.selectedTypedId) || null;
+            },
+
+            typedBoxClass(item) {
+                const selected = this.selectedTypedId === item.id;
+                const grabbing = this.dragMode === 'move' && this.dragTarget === 'typed' && this.selectedTypedId === item.id;
+                const border = selected ? 'border-violet-600 ring-2 ring-violet-300' : 'border-violet-500/80';
+                const cursor = grabbing ? 'cursor-grabbing' : 'cursor-grab';
+
+                return `${border} ${cursor}`;
+            },
+
+            armTypedPlacement() {
+                if (!this.hasTypedDraft()) {
+                    return;
+                }
+                this.placeMode = 'typed';
+            },
+
+            selectTypedText(id) {
+                this.selectedTypedId = id;
+                this.placeMode = 'typed';
+                const item = this.typedTexts.find((t) => t.id === id);
+                if (item) {
+                    this.textWidthMm = item.widthMm;
+                    if (item.page !== this.page) {
+                        this.page = item.page;
+                        this.render();
+                    }
+                }
+            },
+
+            removeTypedText(id) {
+                this.typedTexts = this.typedTexts.filter((item) => item.id !== id);
+                if (this.selectedTypedId === id) {
+                    this.selectedTypedId = this.typedTexts.length
+                        ? this.typedTexts[this.typedTexts.length - 1].id
+                        : null;
+                    const selected = this.selectedTypedPlacement();
+                    if (selected) {
+                        this.textWidthMm = selected.widthMm;
+                    }
+                }
+                this.handleDragEnd();
+                if (!this.canPlaceTyped() && this.placeMode === 'typed') {
+                    this.placeMode = this.preferPlaceMode();
+                }
+            },
+
+            clearAllTypedTexts() {
+                this.typedTexts = [];
+                this.selectedTypedId = null;
+                this.handleDragEnd();
+                if (!this.hasTypedDraft() && this.placeMode === 'typed') {
+                    this.placeMode = this.preferPlaceMode();
+                }
+            },
+
+            clearTypedDraft() {
+                this.typedText = '';
+                if (this.$refs.textCanvas) {
+                    const tc = this.$refs.textCanvas.getContext('2d');
+                    tc.clearRect(0, 0, this.$refs.textCanvas.width, this.$refs.textCanvas.height);
+                }
+                this.typedSignatureData = '';
+                if (!this.typedTexts.length && this.placeMode === 'typed') {
+                    this.placeMode = this.preferPlaceMode();
+                }
+            },
+
+            placeTypedAt(pixelX, pixelY) {
+                if (!this.hasTypedDraft() || !this.pageViewport) {
+                    return;
+                }
+                if (this.typedTexts.length >= 20) {
+                    this.errorMessage = 'You can place up to 20 text labels.';
+
+                    return;
+                }
+                const scale = this.pageViewport.scale;
+                const widthPx = this.textWidthMm * PT_PER_MM * scale;
+                const id = this.nextTypedId++;
+                const item = {
+                    id,
+                    label: this.typedText.trim().slice(0, 48),
+                    dataUrl: this.typedSignatureData,
+                    page: this.page,
+                    pixelX,
+                    pixelY,
+                    pixelWidth: widthPx,
+                    pixelHeight: widthPx * RASTER_ASPECT,
+                    widthMm: Math.min(300, Math.max(10, this.textWidthMm)),
+                };
+                this.typedTexts.push(item);
+                this.selectedTypedId = id;
+                this.clampTypedPlacement(item);
+                this.errorMessage = '';
             },
 
             async init() {
@@ -560,7 +714,7 @@
                 try { await renderTask.promise; } catch (e) { /* cancelled */ }
 
                 this.repositionDrawPixel();
-                this.repositionTypedPixel();
+                this.repositionAllTypedPixels();
                 this.repositionLogoPixel();
             },
 
@@ -662,7 +816,7 @@
 
             pdfCanvasCursorClass() {
                 const canDraw = this.hasDrawingInk() && this.drawingData && this.placeMode === 'drawing';
-                const canTyped = this.hasTypedText() && this.typedSignatureData && this.placeMode === 'typed';
+                const canTyped = this.hasTypedDraft() && this.placeMode === 'typed';
                 const canLogo = this.logoData && this.placeMode === 'logo';
                 if (canDraw || canTyped || canLogo) {
                     return 'cursor-crosshair shadow';
@@ -673,7 +827,7 @@
 
             canSubmit() {
                 const drawReady = Boolean(this.drawPlacement && this.hasDrawingInk() && this.drawingData);
-                const typedReady = Boolean(this.typedPlacement && this.hasTypedText() && this.typedSignatureData);
+                const typedReady = this.typedTexts.length > 0;
                 const logoReady = Boolean(this.logoPlacement && this.logoData);
 
                 return drawReady || typedReady || logoReady;
@@ -681,11 +835,6 @@
 
             clearDrawingFromPage() {
                 this.drawPlacement = null;
-                this.handleDragEnd();
-            },
-
-            clearTypedFromPage() {
-                this.typedPlacement = null;
                 this.handleDragEnd();
             },
 
@@ -702,18 +851,6 @@
                 this.hasInk = false;
                 this.drawingData = '';
                 this.drawPlacement = null;
-                this.placeMode = this.preferPlaceMode();
-                this.handleDragEnd();
-            },
-
-            clearTyped() {
-                this.typedText = '';
-                if (this.$refs.textCanvas) {
-                    const tc = this.$refs.textCanvas.getContext('2d');
-                    tc.clearRect(0, 0, this.$refs.textCanvas.width, this.$refs.textCanvas.height);
-                }
-                this.typedSignatureData = '';
-                this.typedPlacement = null;
                 this.placeMode = this.preferPlaceMode();
                 this.handleDragEnd();
             },
@@ -750,7 +887,7 @@
                     img.onload = () => {
                         this.logoNaturalW = img.naturalWidth || 1;
                         this.logoNaturalH = img.naturalHeight || 1;
-                        if (!this.hasDrawingInk() && !this.hasTypedText()) {
+                        if (!this.hasDrawingInk() && !this.canPlaceTyped()) {
                             this.placeMode = 'logo';
                         }
                         this.$nextTick(() => this.repositionLogoPixel());
@@ -799,18 +936,10 @@
                 }
 
                 if (this.placeMode === 'typed') {
-                    if (!this.hasTypedText() || !this.typedSignatureData) {
+                    if (!this.hasTypedDraft()) {
                         return;
                     }
-                    const widthPx = this.textWidthMm * PT_PER_MM * scale;
-                    this.typedPlacement = {
-                        page: this.page,
-                        pixelX: x,
-                        pixelY: y,
-                        pixelWidth: widthPx,
-                        pixelHeight: widthPx * RASTER_ASPECT,
-                    };
-                    this.clampTypedPlacement();
+                    this.placeTypedAt(x, y);
 
                     return;
                 }
@@ -838,13 +967,12 @@
                 return `left:${p.pixelX}px;top:${p.pixelY}px;width:${p.pixelWidth}px;height:${p.pixelHeight}px`;
             },
 
-            typedPlacementBoxStyle() {
-                if (!this.typedPlacement) {
+            typedPlacementBoxStyle(item) {
+                if (!item) {
                     return '';
                 }
-                const p = this.typedPlacement;
 
-                return `left:${p.pixelX}px;top:${p.pixelY}px;width:${p.pixelWidth}px;height:${p.pixelHeight}px`;
+                return `left:${item.pixelX}px;top:${item.pixelY}px;width:${item.pixelWidth}px;height:${item.pixelHeight}px`;
             },
 
             logoPlacementBoxStyle() {
@@ -864,12 +992,13 @@
                 this.drawPlacement.pixelY = Math.max(0, Math.min(canvas.height - this.drawPlacement.pixelHeight, this.drawPlacement.pixelY));
             },
 
-            clampTypedPlacement() {
-                if (!this.typedPlacement) return;
+            clampTypedPlacement(item = null) {
+                const target = item || this.selectedTypedPlacement();
+                if (!target) return;
                 const canvas = this.$refs.canvas;
                 if (!canvas || !canvas.width) return;
-                this.typedPlacement.pixelX = Math.max(0, Math.min(canvas.width - this.typedPlacement.pixelWidth, this.typedPlacement.pixelX));
-                this.typedPlacement.pixelY = Math.max(0, Math.min(canvas.height - this.typedPlacement.pixelHeight, this.typedPlacement.pixelY));
+                target.pixelX = Math.max(0, Math.min(canvas.width - target.pixelWidth, target.pixelX));
+                target.pixelY = Math.max(0, Math.min(canvas.height - target.pixelHeight, target.pixelY));
             },
 
             clampLogoPlacement() {
@@ -888,10 +1017,12 @@
             },
 
             syncTextWidthMmFromPlacement() {
-                if (!this.typedPlacement || !this.pageViewport) return;
+                const target = this.selectedTypedPlacement();
+                if (!target || !this.pageViewport) return;
                 const scale = this.pageViewport.scale;
-                const wMm = this.typedPlacement.pixelWidth / (PT_PER_MM * scale);
-                this.textWidthMm = Math.round(Math.min(300, Math.max(10, wMm)) * 100) / 100;
+                const wMm = target.pixelWidth / (PT_PER_MM * scale);
+                target.widthMm = Math.round(Math.min(300, Math.max(10, wMm)) * 100) / 100;
+                this.textWidthMm = target.widthMm;
             },
 
             syncLogoWidthMmFromPlacement() {
@@ -909,12 +1040,28 @@
                 this.clampDrawPlacement();
             },
 
-            repositionTypedPixel() {
-                if (!this.typedPlacement || !this.pageViewport) return;
+            repositionSelectedTypedPixel() {
+                const target = this.selectedTypedPlacement();
+                if (!target || !this.pageViewport) return;
                 const widthPx = this.textWidthMm * PT_PER_MM * this.pageViewport.scale;
-                this.typedPlacement.pixelWidth = widthPx;
-                this.typedPlacement.pixelHeight = widthPx * RASTER_ASPECT;
-                this.clampTypedPlacement();
+                target.widthMm = Math.min(300, Math.max(10, this.textWidthMm));
+                target.pixelWidth = widthPx;
+                target.pixelHeight = widthPx * RASTER_ASPECT;
+                this.clampTypedPlacement(target);
+            },
+
+            repositionAllTypedPixels() {
+                if (!this.pageViewport) return;
+                const scale = this.pageViewport.scale;
+                this.typedTexts.forEach((item) => {
+                    if (item.page !== this.page) {
+                        return;
+                    }
+                    const widthPx = item.widthMm * PT_PER_MM * scale;
+                    item.pixelWidth = widthPx;
+                    item.pixelHeight = widthPx * RASTER_ASPECT;
+                    this.clampTypedPlacement(item);
+                });
             },
 
             repositionLogoPixel() {
@@ -969,20 +1116,24 @@
                 this.attachDragListeners();
             },
 
-            startMoveTyped(event) {
-                if (!this.typedPlacement || !this.pageViewport) return;
+            startMoveTyped(event, id) {
+                const item = this.typedTexts.find((t) => t.id === id);
+                if (!item || !this.pageViewport) return;
+                this.selectTypedText(id);
                 const canvas = this.$refs.canvas;
                 const { clientX, clientY } = clientFromEvent(event);
                 const { x, y } = canvasDeviceCoords(canvas, clientX, clientY);
                 this.dragMode = 'move';
                 this.dragTarget = 'typed';
-                this.dragOffsetX = x - this.typedPlacement.pixelX;
-                this.dragOffsetY = y - this.typedPlacement.pixelY;
+                this.dragOffsetX = x - item.pixelX;
+                this.dragOffsetY = y - item.pixelY;
                 this.attachDragListeners();
             },
 
-            startResizeTyped(event) {
-                if (!this.typedPlacement) return;
+            startResizeTyped(event, id) {
+                const item = this.typedTexts.find((t) => t.id === id);
+                if (!item) return;
+                this.selectTypedText(id);
                 this.dragMode = 'resize';
                 this.dragTarget = 'typed';
                 this.attachDragListeners();
@@ -1037,7 +1188,9 @@
                     return;
                 }
 
-                const rasterTarget = this.dragTarget === 'drawing' ? this.drawPlacement : (this.dragTarget === 'typed' ? this.typedPlacement : null);
+                const rasterTarget = this.dragTarget === 'drawing'
+                    ? this.drawPlacement
+                    : (this.dragTarget === 'typed' ? this.selectedTypedPlacement() : null);
                 if (!rasterTarget) return;
 
                 const minWpx = 10 * PT_PER_MM * scale;
@@ -1060,7 +1213,7 @@
                         this.clampDrawPlacement();
                     } else {
                         this.syncTextWidthMmFromPlacement();
-                        this.clampTypedPlacement();
+                        this.clampTypedPlacement(rasterTarget);
                     }
                 }
             },
@@ -1084,14 +1237,16 @@
                     fd.append('width', String(Math.min(300, Math.max(10, this.drawWidthMm))));
                 }
 
-                if (this.typedPlacement && this.hasTypedText() && this.typedSignatureData) {
-                    const xPt = this.typedPlacement.pixelX / scale;
-                    const yPt = this.typedPlacement.pixelY / scale;
-                    fd.append('typed_signature', this.typedSignatureData);
-                    fd.append('typed_page', String(this.typedPlacement.page));
-                    fd.append('typed_x', (xPt / PT_PER_MM).toFixed(2));
-                    fd.append('typed_y', (yPt / PT_PER_MM).toFixed(2));
-                    fd.append('typed_width', String(Math.min(300, Math.max(10, this.textWidthMm))));
+                if (this.typedTexts.length > 0) {
+                    this.typedTexts.forEach((item, index) => {
+                        const xPt = item.pixelX / scale;
+                        const yPt = item.pixelY / scale;
+                        fd.append(`typed_texts[${index}][image]`, item.dataUrl);
+                        fd.append(`typed_texts[${index}][page]`, String(item.page));
+                        fd.append(`typed_texts[${index}][x]`, (xPt / PT_PER_MM).toFixed(2));
+                        fd.append(`typed_texts[${index}][y]`, (yPt / PT_PER_MM).toFixed(2));
+                        fd.append(`typed_texts[${index}][width]`, String(Math.min(300, Math.max(10, item.widthMm))));
+                    });
                 }
 
                 if (this.logoPlacement && this.logoData) {
@@ -1127,6 +1282,8 @@
                             const errs = json.errors || {};
                             message = errs.sign?.[0]
                                 || errs.signature?.[0]
+                                || errs.typed_texts?.[0]
+                                || errs['typed_texts.0.image']?.[0]
                                 || errs.typed_signature?.[0]
                                 || errs.logo?.[0]
                                 || Object.values(errs).flat()[0]

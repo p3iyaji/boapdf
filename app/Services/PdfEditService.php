@@ -93,8 +93,10 @@ class PdfEditService
                 $prepared[] = $item;
             }
 
-            $pdf = new Fpdi;
-            $pageCount = $pdf->setSourceFile($pdfPath);
+            [$pdf, $pageCount, $compatibleTemp] = $this->images->fpdiFromPath($pdfPath);
+            if (is_string($compatibleTemp)) {
+                $tempFiles[] = $compatibleTemp;
+            }
 
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
                 $template = $pdf->importPage($pageNo);
