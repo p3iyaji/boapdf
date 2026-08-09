@@ -32,6 +32,7 @@ class ProcessPdfSignJob implements ShouldQueue
      *     typed_x?: float|null,
      *     typed_y?: float|null,
      *     typed_width?: float|null,
+     *     typed_texts?: list<array{image: string, page: int|float|string, x: float|int|string, y: float|int|string, width?: float|int|string|null}>|null,
      *     logo?: string|null,
      *     logo_page?: int|null,
      *     logo_x?: float|null,
@@ -60,9 +61,11 @@ class ProcessPdfSignJob implements ShouldQueue
         }
 
         $data = $this->payload;
+        $tempImages = [];
         $absolutePath = null;
         $metadata = [];
         $signaturePosition = [];
+        $overlays = [];
 
         try {
             if (! empty($data['signature'])) {
@@ -76,28 +79,47 @@ class ProcessPdfSignJob implements ShouldQueue
                 $signaturePosition['signature'] = $drawPosition;
 
                 $image = $signer->createSignatureFromDataUrl($data['signature']);
-                $absolutePath = $signer->addSignature($source->absolutePath(), $image, $drawPosition);
-                @unlink($image);
+                $tempImages[] = $image;
+                $overlays[] = [
+                    'image_path' => $image,
+                    'page' => $drawPosition['page'],
+                    'x' => $drawPosition['x'],
+                    'y' => $drawPosition['y'],
+                    'width' => $drawPosition['width'],
+                    'max_raster_width' => 600,
+                ];
             }
 
-            if (! empty($data['typed_signature'])) {
-                $typedPosition = [
-                    'page' => (int) $data['typed_page'],
-                    'x' => (float) $data['typed_x'],
-                    'y' => (float) $data['typed_y'],
-                    'width' => isset($data['typed_width']) ? (float) $data['typed_width'] : 60.0,
-                ];
-                $metadata['typed_text'] = $typedPosition;
-                $signaturePosition['typed_text'] = $typedPosition;
+            $typedTexts = $this->normalizeTypedTexts($data);
 
-                $image = $signer->createSignatureFromDataUrl($data['typed_signature']);
-                $inputPdf = $absolutePath ?? $source->absolutePath();
-                $nextPath = $signer->addSignature($inputPdf, $image, $typedPosition);
-                @unlink($image);
-                if ($absolutePath !== null && $nextPath !== $absolutePath && file_exists($absolutePath)) {
-                    @unlink($absolutePath);
+            if ($typedTexts !== []) {
+                $typedPositions = [];
+
+                foreach ($typedTexts as $typedItem) {
+                    $typedPosition = [
+                        'page' => (int) $typedItem['page'],
+                        'x' => (float) $typedItem['x'],
+                        'y' => (float) $typedItem['y'],
+                        'width' => isset($typedItem['width']) ? (float) $typedItem['width'] : 60.0,
+                    ];
+                    $typedPositions[] = $typedPosition;
+
+                    $image = $signer->createSignatureFromDataUrl($typedItem['image']);
+                    $tempImages[] = $image;
+                    $overlays[] = [
+                        'image_path' => $image,
+                        'page' => $typedPosition['page'],
+                        'x' => $typedPosition['x'],
+                        'y' => $typedPosition['y'],
+                        'width' => $typedPosition['width'],
+                        'max_raster_width' => 600,
+                    ];
                 }
-                $absolutePath = $nextPath;
+
+                $metadata['typed_texts'] = $typedPositions;
+                $metadata['typed_text'] = $typedPositions[0];
+                $signaturePosition['typed_texts'] = $typedPositions;
+                $signaturePosition['typed_text'] = $typedPositions[0];
             }
 
             if (! empty($data['logo'])) {
@@ -111,18 +133,22 @@ class ProcessPdfSignJob implements ShouldQueue
                 $signaturePosition['logo'] = $logoPosition;
 
                 $logoImage = $signer->createImageFromDataUrl($data['logo']);
-                $inputPdf = $absolutePath ?? $source->absolutePath();
-                $stampedPath = $signer->addSignature($inputPdf, $logoImage, $logoPosition, 800);
-                @unlink($logoImage);
-                if ($absolutePath !== null && $stampedPath !== $absolutePath && file_exists($absolutePath)) {
-                    @unlink($absolutePath);
-                }
-                $absolutePath = $stampedPath;
+                $tempImages[] = $logoImage;
+                $overlays[] = [
+                    'image_path' => $logoImage,
+                    'page' => $logoPosition['page'],
+                    'x' => $logoPosition['x'],
+                    'y' => $logoPosition['y'],
+                    'width' => $logoPosition['width'],
+                    'max_raster_width' => 800,
+                ];
             }
 
-            if ($absolutePath === null) {
+            if ($overlays === []) {
                 throw new \RuntimeException('Nothing to apply.');
             }
+
+            $absolutePath = $signer->addSignatures($source->absolutePath(), $overlays);
 
             $relativePath = 'signed/'.basename($absolutePath);
             $pages = 0;
@@ -175,6 +201,12 @@ class ProcessPdfSignJob implements ShouldQueue
                 @unlink($absolutePath);
             }
             throw $e;
+        } finally {
+            foreach ($tempImages as $path) {
+                if (is_string($path) && file_exists($path)) {
+                    @unlink($path);
+                }
+            }
         }
     }
 
@@ -189,5 +221,44 @@ class ProcessPdfSignJob implements ShouldQueue
             'status' => Document::STATUS_FAILED,
             'metadata' => ['error' => 'Signing failed.'],
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return list<array{image: string, page: int|float|string, x: float|int|string, y: float|int|string, width?: float|int|string|null}>
+     */
+    private function normalizeTypedTexts(array $data): array
+    {
+        if (! empty($data['typed_texts']) && is_array($data['typed_texts'])) {
+            $normalized = [];
+
+            foreach ($data['typed_texts'] as $item) {
+                if (! is_array($item) || empty($item['image'])) {
+                    continue;
+                }
+
+                $normalized[] = [
+                    'image' => (string) $item['image'],
+                    'page' => $item['page'] ?? 1,
+                    'x' => $item['x'] ?? 0,
+                    'y' => $item['y'] ?? 0,
+                    'width' => $item['width'] ?? 60.0,
+                ];
+            }
+
+            return $normalized;
+        }
+
+        if (! empty($data['typed_signature'])) {
+            return [[
+                'image' => (string) $data['typed_signature'],
+                'page' => $data['typed_page'] ?? 1,
+                'x' => $data['typed_x'] ?? 0,
+                'y' => $data['typed_y'] ?? 0,
+                'width' => $data['typed_width'] ?? 60.0,
+            ]];
+        }
+
+        return [];
     }
 }

@@ -205,7 +205,7 @@ it('signs a document and stores a SignatureRequest', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldReceive('createSignatureFromDataUrl')
         ->andReturn(Storage::disk('local')->path('temp/signature.png'));
-    $signer->shouldReceive('addSignature')
+    $signer->shouldReceive('addSignatures')
         ->andReturn(Storage::disk('local')->path('signed/result.pdf'));
 
     $this->mock(PdfConversionService::class)
@@ -257,17 +257,13 @@ it('signs a document with an optional logo', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldReceive('createSignatureFromDataUrl')->once()->andReturn($sigImg);
     $signer->shouldReceive('createImageFromDataUrl')->once()->andReturn($logoImg);
-    $calls = 0;
-    $signer->shouldReceive('addSignature')
-        ->twice()
-        ->andReturnUsing(function (...$args) use (&$calls, $pathA, $pathB) {
-            $calls++;
-            if ($calls === 1) {
-                expect($args[3] ?? 600)->toBe(600);
-
-                return $pathA;
-            }
-            expect($args[3] ?? null)->toBe(800);
+    $signer->shouldReceive('addSignatures')
+        ->once()
+        ->andReturnUsing(function (string $pdfPath, array $overlays) use ($pathB, $doc): string {
+            expect($pdfPath)->toBe($doc->absolutePath());
+            expect($overlays)->toHaveCount(2);
+            expect($overlays[0]['max_raster_width'] ?? 600)->toBe(600);
+            expect($overlays[1]['max_raster_width'] ?? null)->toBe(800);
 
             return $pathB;
         });
@@ -317,12 +313,13 @@ it('signs with typed text only', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldNotReceive('createImageFromDataUrl');
     $signer->shouldReceive('createSignatureFromDataUrl')->once()->andReturn($typedImg);
-    $signer->shouldReceive('addSignature')
+    $signer->shouldReceive('addSignatures')
         ->once()
-        ->andReturnUsing(function (string $pdfPath, string $imagePath, array $position, int $maxRaster = 600) use ($outPath, $doc): string {
-            expect($maxRaster)->toBe(600);
-            expect($position['page'])->toBe(1);
+        ->andReturnUsing(function (string $pdfPath, array $overlays) use ($outPath, $doc): string {
             expect($pdfPath)->toBe($doc->absolutePath());
+            expect($overlays)->toHaveCount(1);
+            expect($overlays[0]['page'])->toBe(1);
+            expect($overlays[0]['max_raster_width'] ?? 600)->toBe(600);
 
             return $outPath;
         });
@@ -344,10 +341,85 @@ it('signs with typed text only', function () {
     $signed = Document::where('operation_type', Document::OP_SIGNED)->first();
     expect($signed->metadata['signature'] ?? null)->toBeNull();
     expect($signed->metadata['typed_text']['page'] ?? null)->toBe(1);
+    expect($signed->metadata['typed_texts'] ?? null)->toHaveCount(1);
 
     $req = SignatureRequest::where('status', SignatureRequest::STATUS_SIGNED)->first();
     expect($req->signature_position)->toHaveKey('typed_text');
+    expect($req->signature_position)->toHaveKey('typed_texts');
     expect($req->signature_position)->not->toHaveKey('signature');
+});
+
+it('signs with multiple typed text placements', function () {
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('temp/typed-a.png', 'a');
+    Storage::disk('local')->put('temp/typed-b.png', 'b');
+    Storage::disk('local')->put('signed/out-a.pdf', '%PDF-1.4 a');
+    Storage::disk('local')->put('signed/out-b.pdf', '%PDF-1.4 b');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $pngDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+    $typedA = Storage::disk('local')->path('temp/typed-a.png');
+    $typedB = Storage::disk('local')->path('temp/typed-b.png');
+    $outA = Storage::disk('local')->path('signed/out-a.pdf');
+    $outB = Storage::disk('local')->path('signed/out-b.pdf');
+
+    $signer = $this->mock(PdfSignatureService::class);
+    $signer->shouldNotReceive('createImageFromDataUrl');
+    $signer->shouldReceive('createSignatureFromDataUrl')
+        ->twice()
+        ->andReturn($typedA, $typedB);
+    $signer->shouldReceive('addSignatures')
+        ->once()
+        ->andReturnUsing(function (string $pdfPath, array $overlays) use ($outB, $doc, $typedA, $typedB): string {
+            expect($pdfPath)->toBe($doc->absolutePath());
+            expect($overlays)->toHaveCount(2);
+            expect($overlays[0]['image_path'])->toBe($typedA);
+            expect($overlays[0]['page'])->toBe(1);
+            expect((float) $overlays[0]['x'])->toBe(10.0);
+            expect($overlays[1]['image_path'])->toBe($typedB);
+            expect($overlays[1]['page'])->toBe(2);
+            expect((float) $overlays[1]['y'])->toBe(90.0);
+
+            return $outB;
+        });
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(2);
+
+    $this->actingAs($this->user)
+        ->post(route('pdf.sign.store', $doc), [
+            'typed_texts' => [
+                [
+                    'image' => $pngDataUrl,
+                    'page' => 1,
+                    'x' => 10,
+                    'y' => 20,
+                    'width' => 40,
+                ],
+                [
+                    'image' => $pngDataUrl,
+                    'page' => 2,
+                    'x' => 30,
+                    'y' => 90,
+                    'width' => 50,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $signed = Document::where('operation_type', Document::OP_SIGNED)->first();
+    expect($signed->metadata['typed_texts'])->toHaveCount(2);
+    expect($signed->metadata['typed_texts'][0]['page'] ?? null)->toBe(1);
+    expect($signed->metadata['typed_texts'][1]['page'] ?? null)->toBe(2);
+    expect($signed->metadata['typed_text']['page'] ?? null)->toBe(1);
+
+    $req = SignatureRequest::where('status', SignatureRequest::STATUS_SIGNED)->first();
+    expect($req->signature_position['typed_texts'])->toHaveCount(2);
 });
 
 it('requires logo placement fields when a logo is submitted', function () {
@@ -390,12 +462,13 @@ it('signs with logo only when no signature is sent', function () {
     $signer = $this->mock(PdfSignatureService::class);
     $signer->shouldNotReceive('createSignatureFromDataUrl');
     $signer->shouldReceive('createImageFromDataUrl')->once()->andReturn($logoImg);
-    $signer->shouldReceive('addSignature')
+    $signer->shouldReceive('addSignatures')
         ->once()
-        ->andReturnUsing(function (string $pdfPath, string $imagePath, array $position, int $maxRaster = 600) use ($outPath, $doc): string {
-            expect($maxRaster)->toBe(800);
-            expect($position['page'])->toBe(1);
+        ->andReturnUsing(function (string $pdfPath, array $overlays) use ($outPath, $doc): string {
             expect($pdfPath)->toBe($doc->absolutePath());
+            expect($overlays)->toHaveCount(1);
+            expect($overlays[0]['max_raster_width'] ?? 600)->toBe(800);
+            expect($overlays[0]['page'])->toBe(1);
 
             return $outPath;
         });
