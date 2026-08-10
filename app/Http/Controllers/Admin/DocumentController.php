@@ -13,10 +13,14 @@ class DocumentController extends Controller
 {
     public function index(Request $request): View
     {
+        $search = $request->string('q')->trim()->toString();
+        $status = $request->string('status')->toString();
+        $operation = $request->string('operation')->toString();
+
         $documents = Document::query()
             ->with('user')
-            ->when($request->filled('q'), function ($query) use ($request): void {
-                $term = '%'.$request->string('q')->toString().'%';
+            ->when($search !== '', function ($query) use ($search): void {
+                $term = '%'.$search.'%';
                 $query->where(function ($inner) use ($term): void {
                     $inner->where('original_name', 'like', $term)
                         ->orWhere('file_path', 'like', $term)
@@ -26,17 +30,19 @@ class DocumentController extends Controller
                         });
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))
-            ->when($request->filled('operation'), fn ($query) => $query->where('operation_type', $request->string('operation')->toString()))
+            ->status($status)
+            ->operation($operation)
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
         return view('admin.documents.index', [
             'documents' => $documents,
-            'search' => $request->string('q')->toString(),
-            'status' => $request->string('status')->toString(),
-            'operation' => $request->string('operation')->toString(),
+            'search' => $search,
+            'status' => in_array($status, Document::statuses(), true) ? $status : '',
+            'operation' => in_array($operation, Document::operationTypes(), true) ? $operation : '',
+            'statuses' => Document::statuses(),
+            'operations' => Document::operationTypes(),
         ]);
     }
 

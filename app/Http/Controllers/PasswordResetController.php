@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\NotDisposableEmail;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,7 @@ class PasswordResetController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', new NotDisposableEmail],
         ]);
 
         Password::sendResetLink(
@@ -45,7 +46,7 @@ class PasswordResetController extends Controller
     {
         $request->validate([
             'token' => ['required', 'string'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', new NotDisposableEmail],
             'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);
 

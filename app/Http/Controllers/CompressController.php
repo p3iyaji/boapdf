@@ -48,9 +48,8 @@ class CompressController extends Controller
     public function create(Request $request): View
     {
         $documents = Document::query()
-            ->where('user_id', $request->user()->id)
-            ->where('status', Document::STATUS_COMPLETED)
-            ->where('mime_type', 'application/pdf')
+            ->forUser($request->user()->id)
+            ->completedPdfs()
             ->latest()
             ->get();
 

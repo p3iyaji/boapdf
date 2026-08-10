@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\Document;
 use App\Models\User;
+use App\Rules\NotDisposableEmail;
 use App\Services\AuditLogger;
+use App\Support\DisposableEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,7 +54,7 @@ class AuthController extends Controller
     public function authenticate(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', new NotDisposableEmail],
             'password' => ['required', 'string'],
         ]);
 
@@ -64,7 +66,17 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        if ($user === null || ! $user->isActive()) {
+        if ($user === null || DisposableEmail::isDisposable($user->email)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors(['email' => 'Disposable email addresses are not allowed.'])
+                ->onlyInput('email');
+        }
+
+        if (! $user->isActive()) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
