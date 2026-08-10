@@ -21,6 +21,94 @@ it('lists only the current user\'s documents', function () {
         ->assertDontSee('not-mine.pdf');
 });
 
+it('filters the library by filename search', function () {
+    Document::factory()->uploaded()->for($this->user)->create(['original_name' => 'alpha-contract.pdf']);
+    Document::factory()->uploaded()->for($this->user)->create(['original_name' => 'beta-invoice.pdf']);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index', ['q' => 'alpha']))
+        ->assertOk()
+        ->assertSee('alpha-contract.pdf')
+        ->assertDontSee('beta-invoice.pdf')
+        ->assertSee('Showing 1 result', false);
+});
+
+it('filters the library by status and operation type', function () {
+    Document::factory()->uploaded()->for($this->user)->create([
+        'original_name' => 'ready.pdf',
+        'status' => Document::STATUS_COMPLETED,
+    ]);
+    Document::factory()->merged()->processing()->for($this->user)->create([
+        'original_name' => 'still-merging.pdf',
+    ]);
+    Document::factory()->signed()->for($this->user)->create([
+        'original_name' => 'signed-copy.pdf',
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index', ['status' => Document::STATUS_PROCESSING]))
+        ->assertOk()
+        ->assertSee('still-merging.pdf')
+        ->assertDontSee('ready.pdf')
+        ->assertDontSee('signed-copy.pdf');
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index', ['operation' => Document::OP_SIGNED]))
+        ->assertOk()
+        ->assertSee('signed-copy.pdf')
+        ->assertDontSee('ready.pdf')
+        ->assertDontSee('still-merging.pdf');
+});
+
+it('shows an empty-filter state when nothing matches', function () {
+    Document::factory()->uploaded()->for($this->user)->create(['original_name' => 'only-doc.pdf']);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index', ['q' => 'zzzz-missing']))
+        ->assertOk()
+        ->assertSee('No PDFs match your filters')
+        ->assertSee(route('pdf.index'), false)
+        ->assertDontSee('only-doc.pdf');
+});
+
+it('ignores invalid status and operation filter values', function () {
+    Document::factory()->uploaded()->for($this->user)->create(['original_name' => 'keep-me.pdf']);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index', ['status' => 'not-a-status', 'operation' => 'not-an-op']))
+        ->assertOk()
+        ->assertSee('keep-me.pdf');
+});
+
+it('includes library filter controls on the index page', function () {
+    Document::factory()->uploaded()->for($this->user)->create();
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.index'))
+        ->assertOk()
+        ->assertSee('function pdfLibraryFilters()', false)
+        ->assertSee('id="pdf-search"', false)
+        ->assertSee('name="status"', false)
+        ->assertSee('name="operation"', false);
+});
+
+it('includes searchable document pickers on merge and convert pages', function () {
+    Document::factory()->count(2)->uploaded()->for($this->user)->create();
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.merge.create'))
+        ->assertOk()
+        ->assertSee('id="merge-search"', false)
+        ->assertSee('filteredDocs', false);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.convert.create'))
+        ->assertOk()
+        ->assertSee('id="convert-search"', false)
+        ->assertSee('function convertForm(', false)
+        ->assertSee('filteredDocs', false);
+});
+
 it('includes the camera capture alpine helper in the library page', function () {
     $this->actingAs($this->user)
         ->get(route('pdf.index'))

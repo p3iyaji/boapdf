@@ -20,14 +20,21 @@ class ConvertController extends Controller
     public function create(Request $request): View
     {
         $documents = Document::query()
-            ->where('user_id', $request->user()->id)
-            ->where('status', Document::STATUS_COMPLETED)
-            ->where('mime_type', 'application/pdf')
+            ->forUser($request->user()->id)
+            ->completedPdfs()
             ->latest()
             ->get();
 
+        $convertDocuments = $documents->map(fn (Document $d): array => [
+            'id' => $d->id,
+            'name' => $d->original_name,
+            'pages' => $d->pages,
+            'size' => $d->human_file_size,
+        ])->values()->all();
+
         return view('pdf.convert', [
             'documents' => $documents,
+            'convertDocuments' => $convertDocuments,
             'targets' => PdfConversionService::SUPPORTED_TARGETS,
         ]);
     }

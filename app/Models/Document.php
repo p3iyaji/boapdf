@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\DocumentsDisk;
 use Database\Factories\DocumentFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -89,6 +90,103 @@ class Document extends Model
     public function envelopeSignatureRequests(): HasMany
     {
         return $this->hasMany(SignatureRequest::class, 'source_document_id');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_PROCESSING,
+            self::STATUS_COMPLETED,
+            self::STATUS_FAILED,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function operationTypes(): array
+    {
+        return [
+            self::OP_UPLOAD,
+            self::OP_CAPTURE,
+            self::OP_MERGED,
+            self::OP_COMPRESSED,
+            self::OP_CONVERTED,
+            self::OP_SIGNED,
+            self::OP_EDITED,
+            self::OP_FORM_FILLED,
+            self::OP_CREATED,
+        ];
+    }
+
+    /**
+     * @param  Builder<Document>  $query
+     * @return Builder<Document>
+     */
+    public function scopeForUser(Builder $query, int $userId): Builder
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * @param  Builder<Document>  $query
+     * @return Builder<Document>
+     */
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        $term = trim((string) $term);
+
+        if ($term === '') {
+            return $query;
+        }
+
+        $like = '%'.$term.'%';
+
+        return $query->where(function (Builder $inner) use ($like): void {
+            $inner->where('original_name', 'like', $like)
+                ->orWhere('file_path', 'like', $like);
+        });
+    }
+
+    /**
+     * @param  Builder<Document>  $query
+     * @return Builder<Document>
+     */
+    public function scopeStatus(Builder $query, ?string $status): Builder
+    {
+        if (! filled($status) || ! in_array($status, self::statuses(), true)) {
+            return $query;
+        }
+
+        return $query->where('status', $status);
+    }
+
+    /**
+     * @param  Builder<Document>  $query
+     * @return Builder<Document>
+     */
+    public function scopeOperation(Builder $query, ?string $operation): Builder
+    {
+        if (! filled($operation) || ! in_array($operation, self::operationTypes(), true)) {
+            return $query;
+        }
+
+        return $query->where('operation_type', $operation);
+    }
+
+    /**
+     * @param  Builder<Document>  $query
+     * @return Builder<Document>
+     */
+    public function scopeCompletedPdfs(Builder $query): Builder
+    {
+        return $query
+            ->where('status', self::STATUS_COMPLETED)
+            ->where('mime_type', 'application/pdf');
     }
 
     public function getHumanFileSizeAttribute(): string

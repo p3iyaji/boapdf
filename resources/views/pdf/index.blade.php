@@ -250,9 +250,100 @@
     </form>
 </div>
 
-@if ($documents->isEmpty())
+@if (! $documents->isEmpty() || $filtersActive)
+<form
+    method="GET"
+    action="{{ route('pdf.index') }}"
+    x-data="pdfLibraryFilters()"
+    x-ref="filters"
+    class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5"
+>
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div class="min-w-0 flex-1">
+            <label for="pdf-search" class="mb-1 block text-xs font-medium text-gray-600">Search</label>
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/>
+                </svg>
+                <input
+                    id="pdf-search"
+                    type="search"
+                    name="q"
+                    value="{{ $search }}"
+                    x-model="q"
+                    @input="debounceSubmit()"
+                    placeholder="Search by filename&hellip;"
+                    autocomplete="off"
+                    class="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:w-auto lg:w-80">
+            <div>
+                <label for="pdf-status" class="mb-1 block text-xs font-medium text-gray-600">Status</label>
+                <select
+                    id="pdf-status"
+                    name="status"
+                    x-model="status"
+                    @change="submitNow()"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                    <option value="">Any</option>
+                    @foreach ($statuses as $option)
+                        <option value="{{ $option }}" @selected($status === $option)>{{ ucfirst($option) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="pdf-operation" class="mb-1 block text-xs font-medium text-gray-600">Type</label>
+                <select
+                    id="pdf-operation"
+                    name="operation"
+                    x-model="operation"
+                    @change="submitNow()"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                    <option value="">Any</option>
+                    @foreach ($operations as $option)
+                        <option value="{{ $option }}" @selected($operation === $option)>{{ ucfirst(str_replace('_', ' ', $option)) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 lg:pb-0.5">
+            <noscript>
+                <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Filter</button>
+            </noscript>
+            @if ($filtersActive)
+                <a
+                    href="{{ route('pdf.index') }}"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    Clear
+                </a>
+            @endif
+        </div>
+    </div>
+    @if ($filtersActive)
+        <p class="mt-3 text-xs text-gray-500">
+            Showing {{ $documents->total() }} {{ \Illuminate\Support\Str::plural('result', $documents->total()) }}
+            @if ($search !== '')
+                for “{{ $search }}”
+            @endif
+        </p>
+    @endif
+</form>
+@endif
+
+@if ($documents->isEmpty() && ! $filtersActive)
     <div class="rounded-xl bg-white p-12 text-center shadow">
         <p class="text-gray-500">You haven't uploaded any PDFs yet.</p>
+    </div>
+@elseif ($documents->isEmpty())
+    <div class="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
+        <p class="font-medium text-gray-800">No PDFs match your filters</p>
+        <p class="mt-1 text-sm text-gray-500">Try a different name, status, or type.</p>
+        <a href="{{ route('pdf.index') }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">Clear filters</a>
     </div>
 @else
     {{-- Phones & tablets: stacked cards with full action grid (table from lg) --}}
@@ -261,7 +352,14 @@
             <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <a href="{{ route('pdf.show', $doc) }}" class="block font-semibold text-blue-600 hover:text-blue-800">{{ $doc->original_name }}</a>
                 <p class="mt-1 text-xs leading-relaxed text-gray-500">
-                    {{ ucfirst($doc->operation_type) }}
+                    {{ ucfirst(str_replace('_', ' ', $doc->operation_type)) }}
+                    <span class="text-gray-300">&middot;</span>
+                    <span @class([
+                        'font-medium',
+                        'text-emerald-700' => $doc->status === \App\Models\Document::STATUS_COMPLETED,
+                        'text-amber-700' => in_array($doc->status, [\App\Models\Document::STATUS_PENDING, \App\Models\Document::STATUS_PROCESSING], true),
+                        'text-red-700' => $doc->status === \App\Models\Document::STATUS_FAILED,
+                    ])>{{ ucfirst($doc->status) }}</span>
                     <span class="text-gray-300">&middot;</span> {{ $doc->pages }} pages
                     <span class="text-gray-300">&middot;</span> {{ $doc->human_file_size }}
                     <span class="text-gray-300">&middot;</span> {{ $doc->created_at->diffForHumans() }}
@@ -282,6 +380,7 @@
                     <tr>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Name</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Type</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Status</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Pages</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Size</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Uploaded</th>
@@ -296,7 +395,21 @@
                             <td class="max-w-[14rem] px-4 py-3 lg:max-w-xs lg:px-6 lg:py-4">
                                 <a href="{{ route('pdf.show', $doc) }}" class="font-medium text-blue-600 hover:text-blue-800">{{ $doc->original_name }}</a>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ ucfirst($doc->operation_type) }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ ucfirst(str_replace('_', ' ', $doc->operation_type)) }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm lg:px-6 lg:py-4">
+                                <span @class([
+                                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                                    'bg-emerald-50 text-emerald-800' => $doc->status === \App\Models\Document::STATUS_COMPLETED,
+                                    'bg-amber-50 text-amber-800' => in_array($doc->status, [\App\Models\Document::STATUS_PENDING, \App\Models\Document::STATUS_PROCESSING], true),
+                                    'bg-red-50 text-red-800' => $doc->status === \App\Models\Document::STATUS_FAILED,
+                                    'bg-gray-100 text-gray-700' => ! in_array($doc->status, [
+                                        \App\Models\Document::STATUS_COMPLETED,
+                                        \App\Models\Document::STATUS_PENDING,
+                                        \App\Models\Document::STATUS_PROCESSING,
+                                        \App\Models\Document::STATUS_FAILED,
+                                    ], true),
+                                ])>{{ ucfirst($doc->status) }}</span>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->pages }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->human_file_size }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->created_at->diffForHumans() }}</td>
@@ -318,6 +431,23 @@
 
 @push('scripts')
 <script>
+function pdfLibraryFilters() {
+    return {
+        q: @js($search),
+        status: @js($status),
+        operation: @js($operation),
+        timer: null,
+        debounceSubmit() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => this.submitNow(), 300);
+        },
+        submitNow() {
+            clearTimeout(this.timer);
+            this.$refs.filters.requestSubmit();
+        },
+    };
+}
+
 function cameraCapture() {
     const A4_RATIO = 210 / 297;
 
