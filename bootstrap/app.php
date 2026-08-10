@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailIsNotDisposable;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\RecordAuditActivity;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
             'admin' => EnsureUserIsAdmin::class,
+            'not-disposable-email' => EnsureEmailIsNotDisposable::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

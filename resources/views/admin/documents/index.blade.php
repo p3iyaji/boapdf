@@ -20,7 +20,7 @@
         <label for="status" class="mb-1 block text-xs font-medium text-brand-800/80">Status</label>
         <select id="status" name="status" class="w-full rounded-lg border border-brand-900/15 px-3 py-2 text-sm shadow-sm">
             <option value="">Any</option>
-            @foreach (['pending', 'processing', 'completed', 'failed'] as $option)
+            @foreach ($statuses as $option)
                 <option value="{{ $option }}" @selected($status === $option)>{{ ucfirst($option) }}</option>
             @endforeach
         </select>
@@ -29,8 +29,8 @@
         <label for="operation" class="mb-1 block text-xs font-medium text-brand-800/80">Operation</label>
         <select id="operation" name="operation" class="w-full rounded-lg border border-brand-900/15 px-3 py-2 text-sm shadow-sm">
             <option value="">Any</option>
-            @foreach (['upload', 'merged', 'compressed', 'converted', 'signed', 'capture'] as $option)
-                <option value="{{ $option }}" @selected($operation === $option)>{{ ucfirst($option) }}</option>
+            @foreach ($operations as $option)
+                <option value="{{ $option }}" @selected($operation === $option)>{{ ucfirst(str_replace('_', ' ', $option)) }}</option>
             @endforeach
         </select>
     </div>
