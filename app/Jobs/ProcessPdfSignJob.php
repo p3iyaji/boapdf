@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Document;
 use App\Models\SignatureRequest;
+use App\Notifications\SignatureCompleted;
 use App\Services\PdfConversionService;
 use App\Services\PdfSignatureService;
 use App\Support\DocumentsDisk;
@@ -183,6 +184,8 @@ class ProcessPdfSignJob implements ShouldQueue
                         'signed_file_path' => $relativePath,
                         'signed_at' => now(),
                     ]);
+
+                $this->notifyDocumentOwnerOfCompletedSignature((int) $data['signature_request_id']);
             } else {
                 SignatureRequest::create([
                     'document_id' => $document->id,
@@ -260,5 +263,23 @@ class ProcessPdfSignJob implements ShouldQueue
         }
 
         return [];
+    }
+
+    private function notifyDocumentOwnerOfCompletedSignature(int $signatureRequestId): void
+    {
+        $signatureRequest = SignatureRequest::query()
+            ->with('sourceDocument.user')
+            ->find($signatureRequestId);
+
+        if ($signatureRequest === null || ! $signatureRequest->isSigned()) {
+            return;
+        }
+
+        $owner = $signatureRequest->sourceDocument?->user;
+        if ($owner === null) {
+            return;
+        }
+
+        $owner->notify(new SignatureCompleted($signatureRequest));
     }
 }

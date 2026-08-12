@@ -3,6 +3,7 @@
 use App\Models\Document;
 use App\Models\SignatureRequest;
 use App\Models\User;
+use App\Notifications\SignatureCompleted;
 use App\Notifications\SignatureInvitation;
 use App\Services\PdfConversionService;
 use App\Services\PdfSignatureService;
@@ -354,4 +355,151 @@ it('still self-signs and records source_document_id', function () {
     expect($req)->not->toBeNull();
     expect($req->source_document_id)->toBe($doc->id);
     expect($req->signer_email)->toBe($this->user->email);
+});
+
+it('notifies the document owner when a guest completes signing', function () {
+    Notification::fake();
+
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('temp/signature.png', 'fake-png');
+    Storage::disk('local')->put('signed/result.pdf', '%PDF-1.4 signed');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $invite = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'alice@example.com',
+        'signer_name' => 'Alice',
+    ]);
+
+    $signer = $this->mock(PdfSignatureService::class);
+    $signer->shouldReceive('createSignatureFromDataUrl')
+        ->andReturn(Storage::disk('local')->path('temp/signature.png'));
+    $signer->shouldReceive('addSignatures')
+        ->andReturn(Storage::disk('local')->path('signed/result.pdf'));
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(1);
+
+    $this->post(route('sign.guest.store', $invite->token), [
+        'signature' => 'data:image/png;base64,iVBORw0KGgo=',
+        'page' => 1,
+        'x' => 20,
+        'y' => 250,
+        'width' => 60,
+    ])->assertRedirect(route('sign.guest.thanks', $invite->token));
+
+    Notification::assertSentTo($this->user, SignatureCompleted::class, function (SignatureCompleted $notification) use ($invite): bool {
+        return $notification->signatureRequest->id === $invite->id;
+    });
+});
+
+it('does not notify the document owner on self-sign', function () {
+    Notification::fake();
+
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('temp/signature.png', 'fake-png');
+    Storage::disk('local')->put('signed/result.pdf', '%PDF-1.4 signed');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $signer = $this->mock(PdfSignatureService::class);
+    $signer->shouldReceive('createSignatureFromDataUrl')
+        ->andReturn(Storage::disk('local')->path('temp/signature.png'));
+    $signer->shouldReceive('addSignatures')
+        ->andReturn(Storage::disk('local')->path('signed/result.pdf'));
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(1);
+
+    $this->actingAs($this->user)
+        ->post(route('pdf.sign.store', $doc), [
+            'signature' => 'data:image/png;base64,iVBORw0KGgo=',
+            'page' => 1,
+            'x' => 20,
+            'y' => 250,
+            'width' => 60,
+        ])
+        ->assertRedirect();
+
+    Notification::assertNotSentTo($this->user, SignatureCompleted::class);
+});
+
+it('notifies the document owner after each guest signs in a multi-signer envelope', function () {
+    Notification::fake();
+
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('temp/signature.png', 'fake-png');
+    Storage::disk('local')->put('signed/result-a.pdf', '%PDF-1.4 signed-a');
+    Storage::disk('local')->put('signed/result-b.pdf', '%PDF-1.4 signed-b');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $alice = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'alice@example.com',
+        'signer_name' => 'Alice',
+        'sort_order' => 1,
+    ]);
+
+    $bob = SignatureRequest::factory()->pendingInvite()->create([
+        'document_id' => $doc->id,
+        'source_document_id' => $doc->id,
+        'requester_email' => $this->user->email,
+        'signer_email' => 'bob@example.com',
+        'signer_name' => 'Bob',
+        'sort_order' => 2,
+    ]);
+
+    $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    $sigImg = Storage::disk('local')->path('temp/signature.png');
+    $pathA = Storage::disk('local')->path('signed/result-a.pdf');
+    $pathB = Storage::disk('local')->path('signed/result-b.pdf');
+
+    $signer = $this->mock(PdfSignatureService::class);
+    $signer->shouldReceive('createSignatureFromDataUrl')->twice()->andReturn($sigImg);
+    $calls = 0;
+    $signer->shouldReceive('addSignatures')
+        ->twice()
+        ->andReturnUsing(function () use (&$calls, $pathA, $pathB) {
+            $calls++;
+
+            return $calls === 1 ? $pathA : $pathB;
+        });
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(1);
+
+    $this->post(route('sign.guest.store', $alice->token), [
+        'signature' => $png,
+        'page' => 1,
+        'x' => 20,
+        'y' => 250,
+        'width' => 60,
+    ])->assertRedirect(route('sign.guest.thanks', $alice->token));
+
+    Notification::assertSentToTimes($this->user, SignatureCompleted::class, 1);
+
+    $this->post(route('sign.guest.store', $bob->token), [
+        'signature' => $png,
+        'page' => 1,
+        'x' => 40,
+        'y' => 200,
+        'width' => 55,
+    ])->assertRedirect(route('sign.guest.thanks', $bob->token));
+
+    Notification::assertSentToTimes($this->user, SignatureCompleted::class, 2);
 });
