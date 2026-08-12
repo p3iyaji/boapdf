@@ -297,6 +297,20 @@
             <div class="rounded-lg border border-gray-300 bg-white">
                 <canvas x-ref="pad" width="400" height="160" class="w-full cursor-crosshair touch-none rounded-lg bg-white"></canvas>
             </div>
+            <div class="mt-3">
+                <label for="draw-date" class="mb-1 block text-sm font-medium text-gray-700">
+                    Date <span class="font-normal text-gray-500">(optional)</span>
+                </label>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input id="draw-date" type="date" x-model="drawDate" @change="updateDrawingPreview()"
+                           class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:max-w-[11rem]">
+                    <label class="flex shrink-0 cursor-pointer items-center gap-2 text-sm text-gray-600">
+                        <input type="checkbox" x-model="drawIncludeDate" @change="updateDrawingPreview()"
+                               class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>Include below signature</span>
+                    </label>
+                </div>
+            </div>
             <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <div class="flex flex-wrap gap-2">
                     <button type="button" @click="clearDrawing()" class="text-sm text-gray-600 hover:text-gray-800">Clear pad</button>
@@ -512,6 +526,9 @@
 
             hasInk: false,
             drawingData: '',
+            drawIncludeDate: false,
+            drawDate: new Date().toISOString().slice(0, 10),
+            drawRasterAspect: RASTER_ASPECT,
 
             typedText: '',
             textFontPreset: 'script',
@@ -760,7 +777,7 @@
                     ctx.stroke();
                     last = p;
                     this.hasInk = true;
-                    this.drawingData = pad.toDataURL('image/png');
+                    this.updateDrawingPreview();
                     e.preventDefault();
                 };
 
@@ -775,6 +792,69 @@
                 pad.addEventListener('touchstart', start, { passive: false });
                 pad.addEventListener('touchmove', (e) => move(e.touches[0]), { passive: false });
                 pad.addEventListener('touchend', end);
+            },
+
+            formatDrawDate(value) {
+                if (!value) {
+                    return '';
+                }
+                const parts = String(value).split('-');
+                if (parts.length !== 3) {
+                    return value;
+                }
+                const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                if (Number.isNaN(date.getTime())) {
+                    return value;
+                }
+
+                return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                });
+            },
+
+            updateDrawingPreview() {
+                const pad = this.$refs.pad;
+                if (!pad) {
+                    return;
+                }
+
+                if (!this.hasInk) {
+                    this.drawingData = '';
+                    this.drawRasterAspect = RASTER_ASPECT;
+
+                    return;
+                }
+
+                const dateLabel = this.drawIncludeDate && this.drawDate
+                    ? this.formatDrawDate(this.drawDate)
+                    : '';
+
+                if (!dateLabel) {
+                    this.drawingData = pad.toDataURL('image/png');
+                    this.drawRasterAspect = RASTER_ASPECT;
+
+                    return;
+                }
+
+                const dateHeight = 28;
+                const composite = document.createElement('canvas');
+                composite.width = pad.width;
+                composite.height = pad.height + dateHeight;
+                const ctx = composite.getContext('2d');
+                ctx.drawImage(pad, 0, 0);
+                ctx.font = '16px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dateLabel, composite.width / 2, pad.height + (dateHeight / 2));
+                this.drawingData = composite.toDataURL('image/png');
+                this.drawRasterAspect = composite.height / composite.width;
+            },
+
+            drawPlacementAspect() {
+                return this.drawRasterAspect || RASTER_ASPECT;
             },
 
             textFontFamily() {
@@ -850,6 +930,7 @@
                 }
                 this.hasInk = false;
                 this.drawingData = '';
+                this.drawRasterAspect = RASTER_ASPECT;
                 this.drawPlacement = null;
                 this.placeMode = this.preferPlaceMode();
                 this.handleDragEnd();
@@ -953,7 +1034,7 @@
                     pixelX: x,
                     pixelY: y,
                     pixelWidth: widthPx,
-                    pixelHeight: widthPx * RASTER_ASPECT,
+                    pixelHeight: widthPx * this.drawPlacementAspect(),
                 };
                 this.clampDrawPlacement();
             },
@@ -1036,7 +1117,7 @@
                 if (!this.drawPlacement || !this.pageViewport) return;
                 const widthPx = this.drawWidthMm * PT_PER_MM * this.pageViewport.scale;
                 this.drawPlacement.pixelWidth = widthPx;
-                this.drawPlacement.pixelHeight = widthPx * RASTER_ASPECT;
+                this.drawPlacement.pixelHeight = widthPx * this.drawPlacementAspect();
                 this.clampDrawPlacement();
             },
 
@@ -1207,7 +1288,7 @@
                     let newW = x - rasterTarget.pixelX;
                     newW = Math.min(maxWpx, Math.max(minWpx, newW));
                     rasterTarget.pixelWidth = newW;
-                    rasterTarget.pixelHeight = newW * RASTER_ASPECT;
+                    rasterTarget.pixelHeight = newW * (this.dragTarget === 'drawing' ? this.drawPlacementAspect() : RASTER_ASPECT);
                     if (this.dragTarget === 'drawing') {
                         this.syncDrawWidthMmFromPlacement();
                         this.clampDrawPlacement();
