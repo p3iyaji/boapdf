@@ -510,6 +510,22 @@ it('rejects apply when no drawing, typed text, or logo is submitted', function (
         ->assertSessionHasErrors('sign');
 });
 
+it('shows an apply confirmation warning on the sign page', function () {
+    Storage::disk('local')->put('uploads/contract.pdf', '%PDF-1.4');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/contract.pdf',
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.sign.create', $doc))
+        ->assertSuccessful()
+        ->assertSee('openApplyConfirm()', false)
+        ->assertSee('confirmApplyOpen', false)
+        ->assertSee('Yes, apply to PDF')
+        ->assertSee('new signed copy of the PDF');
+});
+
 it('converts a PDF and records a ConversionLog', function () {
     Storage::disk('local')->put('uploads/doc.pdf', '%PDF-1.4');
     Storage::disk('local')->put('converted/out.txt', 'hello world');
