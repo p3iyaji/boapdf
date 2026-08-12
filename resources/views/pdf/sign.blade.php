@@ -153,7 +153,7 @@
     @endunless
 
 <div x-show="mode === 'sign' || {{ $guestMode ? 'true' : 'false' }}"
-     class="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-3"
+     class="mt-4"
      x-data="signer({
         streamUrl: @js($streamUrl),
         submitUrl: @js($submitUrl),
@@ -162,6 +162,7 @@
         guestMode: @js($guestMode),
      })"
      x-init="init()">
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
     <div class="rounded-xl bg-white p-4 shadow lg:col-span-2">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 p-3">
@@ -436,8 +437,9 @@
             </div>
         </div>
 
-        <form @submit.prevent="submit()" class="border-t border-gray-100 pt-2">
-            <button type="submit"
+        <div class="border-t border-gray-100 pt-2">
+            <button type="button"
+                    @click="openApplyConfirm()"
                     :disabled="!canSubmit() || submitting"
                     class="w-full rounded-lg bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
                 <span x-show="!submitting" x-text="guestMode ? 'Apply my signature' : 'Apply to PDF'"></span>
@@ -445,12 +447,50 @@
             </button>
             <p class="mt-2 text-xs text-red-600" x-show="errorMessage" x-text="errorMessage"></p>
             <p class="mt-2 text-xs text-gray-500" x-show="!canSubmit() && !errorMessage">Place at least one drawing, typed text, or logo on the PDF to continue.</p>
-        </form>
+        </div>
 
         @unless ($guestMode)
             <a href="{{ route('pdf.show', $document) }}" class="block text-center text-sm text-gray-500 hover:text-gray-700">Cancel</a>
         @endunless
     </aside>
+</div>
+
+    <div x-show="confirmApplyOpen"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="apply-signature-title"
+         @keydown.escape.window="closeApplyConfirm()">
+        <div class="absolute inset-0 bg-gray-900/50" @click="closeApplyConfirm()" aria-hidden="true"></div>
+        <div class="relative w-full max-w-md rounded-xl bg-white p-5 shadow-xl sm:p-6"
+             @click.stop>
+            <h2 id="apply-signature-title" class="text-lg font-semibold text-gray-900">
+                <span x-text="guestMode ? 'Apply your signature?' : 'Apply to PDF?'"></span>
+            </h2>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600" x-show="guestMode">
+                This permanently adds your signature to the document and notifies the requester. Check placement one more time before continuing—you won’t be able to edit it from this link afterward.
+            </p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600" x-show="!guestMode">
+                This stamps your drawing, typed text, and logo onto a new signed copy of the PDF. Double-check placement before continuing—you can’t undo the stamp from this step.
+            </p>
+            <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button type="button"
+                        @click="closeApplyConfirm()"
+                        :disabled="submitting"
+                        class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                    Go back
+                </button>
+                <button type="button"
+                        @click="confirmApply()"
+                        :disabled="submitting || !canSubmit()"
+                        class="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <span x-show="!submitting" x-text="guestMode ? 'Yes, apply my signature' : 'Yes, apply to PDF'"></span>
+                    <span x-show="submitting">Applying&hellip;</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 </div>
 
@@ -557,7 +597,31 @@
             dragOffsetY: 0,
 
             submitting: false,
+            confirmApplyOpen: false,
             errorMessage: '',
+
+            openApplyConfirm() {
+                if (!this.canSubmit() || this.submitting) {
+                    return;
+                }
+                this.errorMessage = '';
+                this.confirmApplyOpen = true;
+            },
+
+            closeApplyConfirm() {
+                if (this.submitting) {
+                    return;
+                }
+                this.confirmApplyOpen = false;
+            },
+
+            confirmApply() {
+                if (!this.canSubmit() || this.submitting) {
+                    return;
+                }
+                this.confirmApplyOpen = false;
+                this.submit();
+            },
 
             preferPlaceMode() {
                 if (this.hasDrawingInk()) {

@@ -165,7 +165,10 @@ it('lets a guest open a valid signing link', function () {
     $this->get(route('sign.guest.show', $invite->token))
         ->assertSuccessful()
         ->assertSee('Alice')
-        ->assertSee($doc->original_name);
+        ->assertSee($doc->original_name)
+        ->assertSee('openApplyConfirm()', false)
+        ->assertSee('Yes, apply my signature')
+        ->assertSee('won’t be able to edit it from this link afterward');
 });
 
 it('rejects expired or invalid guest signing links', function () {
