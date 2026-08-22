@@ -104,6 +104,10 @@
     </div>
 @endif
 
+@php
+    $isPdfDocument = $document->mime_type === 'application/pdf';
+@endphp
+
 @if (! $document->isFileReady())
     <div class="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center shadow-sm"
          @if (in_array($document->status, [\App\Models\Document::STATUS_PROCESSING, \App\Models\Document::STATUS_PENDING], true))
@@ -112,8 +116,12 @@
          @endif>
         @if (in_array($document->status, [\App\Models\Document::STATUS_PROCESSING, \App\Models\Document::STATUS_PENDING], true))
             <p class="text-base font-semibold text-amber-950">Still processing</p>
-            <p class="mt-2 text-sm text-amber-900/80">This PDF is being prepared. This page will refresh automatically.</p>
-            <a href="{{ route('pdf.show', $document) }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-800 px-4 text-sm font-semibold text-white hover:bg-amber-900">Refresh now</a>
+            <p class="mt-2 text-sm text-amber-900/80">This file is being prepared. This page will refresh automatically.</p>
+            @if ($document->operation_type === \App\Models\Document::OP_CONVERTED)
+                <a href="{{ route('pdf.convert.progress', $document) }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-800 px-4 text-sm font-semibold text-white hover:bg-amber-900">View conversion progress</a>
+            @else
+                <a href="{{ route('pdf.show', $document) }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-800 px-4 text-sm font-semibold text-white hover:bg-amber-900">Refresh now</a>
+            @endif
         @elseif ($document->status === \App\Models\Document::STATUS_FAILED)
             <p class="text-base font-semibold text-red-900">Processing failed</p>
             <p class="mt-2 text-sm text-red-800/80">{{ $document->metadata['error'] ?? 'Something went wrong while preparing this file.' }}</p>
@@ -122,6 +130,24 @@
             <p class="text-base font-semibold text-gray-900">File unavailable</p>
             <p class="mt-2 text-sm text-gray-600">The file for this document could not be found.</p>
         @endif
+    </div>
+@elseif (! $isPdfDocument)
+    <div class="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-10">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <p class="text-base font-semibold text-gray-900">Conversion ready</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-gray-600">
+            This file isn’t a PDF, so there’s no in-browser preview. Download it to open in Word, a browser, or your image viewer.
+        </p>
+        <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a href="{{ route('pdf.download', $document) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700">Download file</a>
+            @if ($document->operation_type === \App\Models\Document::OP_CONVERTED)
+                <a href="{{ route('pdf.convert.create') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Convert another</a>
+            @endif
+        </div>
     </div>
 @else
 <div class="min-w-0 max-w-full rounded-xl bg-white p-3 shadow sm:p-4"
@@ -173,7 +199,7 @@
 @endif
 @endsection
 
-@if ($document->isFileReady())
+@if ($document->isFileReady() && $isPdfDocument)
 @push('head')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 @endpush

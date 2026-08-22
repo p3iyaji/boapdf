@@ -106,7 +106,10 @@ it('includes searchable document pickers on merge and convert pages', function (
         ->assertOk()
         ->assertSee('id="convert-search"', false)
         ->assertSee('function convertForm(', false)
-        ->assertSee('filteredDocs', false);
+        ->assertSee('filteredDocs', false)
+        ->assertSee('Choose an output format', false)
+        ->assertSee('Word (DOCX)', false)
+        ->assertSee('Recommended', false);
 });
 
 it('includes the camera capture alpine helper in the library page', function () {
