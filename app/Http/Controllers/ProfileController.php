@@ -91,7 +91,7 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()
-            ->route('login')
+            ->route('login', status: 303)
             ->with('success', 'Your account and personal data have been deleted.');
     }
 }
