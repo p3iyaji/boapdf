@@ -43,6 +43,7 @@ GLOSSARY = (
     "GraphQL",
     "Protégé",
     "Protege",
+    "Toolchain",
     "Vue",
 )
 

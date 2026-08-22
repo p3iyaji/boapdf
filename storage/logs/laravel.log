@@ -1045,3 +1045,43 @@ ModuleNotFoundError: No module named 'wordninja'"}
 [2026-08-22 04:33:34] testing.ERROR: PDF conversion failed {"document_id":1,"target":"docx","exception":"App\\Services\\PdfConversionException","error":"The PDF password is incorrect."} 
 [2026-08-22 04:33:44] testing.ERROR: PDF convert job failed {"document_id":2,"target":"docx","error":"The PDF password is incorrect."} 
 [2026-08-22 04:33:44] testing.ERROR: PDF conversion failed {"document_id":1,"target":"docx","exception":"App\\Services\\PdfConversionException","error":"The PDF password is incorrect."} 
+[2026-08-22 04:43:36] testing.INFO: PDF compression did not reduce size; retrying with maximum preset {"level":"recommended","original_size":1355,"new_size":2898} 
+[2026-08-22 04:43:36] testing.WARNING: PDF conversion continued without OCR after OCR failure. {"pdf":"source.pdf","error":"tesseract is not installed"} 
+[2026-08-22 04:43:36] testing.WARNING: Hybrid PDF→DOCX conversion failed; trying pdf2docx CLI. {"error":"hybrid pdf_to_docx failed"} 
+[2026-08-22 04:43:36] testing.WARNING: pdf2docx reconstruction failed; falling back to LibreOffice. {"error":"pdf2docx crashed"} 
+[2026-08-22 04:43:36] testing.WARNING: pdf2docx is unavailable; falling back to LibreOffice for DOCX.  
+[2026-08-22 04:43:47] testing.ERROR: PDF convert job failed {"document_id":2,"target":"docx","error":"The PDF password is incorrect."} 
+[2026-08-22 04:43:47] testing.ERROR: PDF conversion failed {"document_id":1,"target":"docx","exception":"App\\Services\\PdfConversionException","error":"The PDF password is incorrect."} 
+[2026-08-22 04:43:47] testing.ERROR: Signature invite cancel failed {"error":"Signed requests cannot be removed."} 
+[2026-08-22 04:43:49] testing.WARNING: Ghostscript compression failed, falling back to FPDI {"error":"Ghostscript compression failed: GPL Ghostscript 10.07.1: Unrecoverable error, exit code 1
+Error: /stackunderflow in --not--
+Operand stack:
+
+Execution stack:
+   %interp_exit   .runexec2   --nostringval--   --nostringval--   --nostringval--   2   %stopped_push   --nostringval--   --nostringval--   --nostringval--   false   1   %stopped_push   1804   1   3   %oparray_pop   1803   1   3   %oparray_pop   1788   1   3   %oparray_pop   1659   1   3   %oparray_pop   --nostringval--   %errorexec_pop   .runexec2   --nostringval--   --nostringval--   --nostringval--   2   %stopped_push   --nostringval--
+Dictionary stack:
+   --dict:753/1123(ro)(G)--   --dict:0/20(G)--   --dict:85/200(L)--
+Current allocation mode is local
+Current file position is 4"} 
+[2026-08-22 04:43:49] testing.ERROR: PDF compress job failed {"document_id":2,"error":"Unable to find PDF file header."} 
+[2026-08-22 04:43:49] testing.ERROR: PDF compression failed {"error":"Unable to find PDF file header."} 
+[2026-08-22 04:45:17] testing.INFO: PDF compression did not reduce size; retrying with maximum preset {"level":"recommended","original_size":1355,"new_size":2896} 
+[2026-08-22 04:45:18] testing.WARNING: PDF conversion continued without OCR after OCR failure. {"pdf":"source.pdf","error":"tesseract is not installed"} 
+[2026-08-22 04:45:18] testing.WARNING: Hybrid PDF→DOCX conversion failed; trying pdf2docx CLI. {"error":"hybrid pdf_to_docx failed"} 
+[2026-08-22 04:45:18] testing.WARNING: pdf2docx reconstruction failed; falling back to LibreOffice. {"error":"pdf2docx crashed"} 
+[2026-08-22 04:45:18] testing.WARNING: pdf2docx is unavailable; falling back to LibreOffice for DOCX.  
+[2026-08-22 04:45:28] testing.ERROR: PDF convert job failed {"document_id":2,"target":"docx","error":"The PDF password is incorrect."} 
+[2026-08-22 04:45:28] testing.ERROR: PDF conversion failed {"document_id":1,"target":"docx","exception":"App\\Services\\PdfConversionException","error":"The PDF password is incorrect."} 
+[2026-08-22 04:45:28] testing.ERROR: Signature invite cancel failed {"error":"Signed requests cannot be removed."} 
+[2026-08-22 04:45:30] testing.WARNING: Ghostscript compression failed, falling back to FPDI {"error":"Ghostscript compression failed: GPL Ghostscript 10.07.1: Unrecoverable error, exit code 1
+Error: /stackunderflow in --not--
+Operand stack:
+
+Execution stack:
+   %interp_exit   .runexec2   --nostringval--   --nostringval--   --nostringval--   2   %stopped_push   --nostringval--   --nostringval--   --nostringval--   false   1   %stopped_push   1804   1   3   %oparray_pop   1803   1   3   %oparray_pop   1788   1   3   %oparray_pop   1659   1   3   %oparray_pop   --nostringval--   %errorexec_pop   .runexec2   --nostringval--   --nostringval--   --nostringval--   2   %stopped_push   --nostringval--
+Dictionary stack:
+   --dict:753/1123(ro)(G)--   --dict:0/20(G)--   --dict:85/200(L)--
+Current allocation mode is local
+Current file position is 4"} 
+[2026-08-22 04:45:30] testing.ERROR: PDF compress job failed {"document_id":2,"error":"Unable to find PDF file header."} 
+[2026-08-22 04:45:30] testing.ERROR: PDF compression failed {"error":"Unable to find PDF file header."} 

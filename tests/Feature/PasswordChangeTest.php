@@ -92,14 +92,14 @@ it('shows logout on the admin dashboard', function () {
         ->assertSee(route('logout'), false);
 });
 
-it('does not show the convert tile on the dashboard', function () {
+it('shows convert in the sidebar but not as a dashboard tile', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertDontSee('>Convert</h3>', false)
-        ->assertDontSee(route('pdf.convert.create'), false);
+        ->assertSee(route('pdf.convert.create'), false);
 });
 
 it('does not show the create menu in the sidebar', function () {
