@@ -11,6 +11,14 @@ class FakeConversionProcessRunner extends ConversionProcessRunner
     /** @var list<list<string>> */
     public array $commands = [];
 
+    public bool $hasExtractableText = true;
+
+    public bool $failOcr = false;
+
+    public bool $failPdf2Docx = false;
+
+    public bool $failHybridDocx = false;
+
     public function __construct(public int $pages = 1) {}
 
     public function find(?string $configuredPath, array $names, array $extraDirectories = []): ?string
@@ -28,12 +36,20 @@ class FakeConversionProcessRunner extends ConversionProcessRunner
         }
 
         if ($tool === 'ocrmypdf') {
+            if ($this->failOcr) {
+                throw new RuntimeException('tesseract is not installed');
+            }
+
             File::copy($command[count($command) - 2], $command[count($command) - 1]);
 
             return '';
         }
 
         if ($tool === 'pdf2docx') {
+            if ($this->failPdf2Docx) {
+                throw new RuntimeException('pdf2docx crashed');
+            }
+
             $archive = new ZipArchive;
             $archive->open($command[3], ZipArchive::CREATE | ZipArchive::OVERWRITE);
             $archive->addFromString('word/document.xml', '<document><p>Editable text</p></document>');
@@ -46,12 +62,21 @@ class FakeConversionProcessRunner extends ConversionProcessRunner
             $outputDirectory = $command[array_search('--outdir', $command, true) + 1];
             $inputPath = $command[count($command) - 1];
             $filter = $command[array_search('--convert-to', $command, true) + 1];
-            $extension = str_starts_with($filter, 'doc:') ? 'doc' : 'html';
+            $extension = match (true) {
+                str_starts_with($filter, 'doc:') => 'doc',
+                str_starts_with($filter, 'docx:') => 'docx',
+                default => 'html',
+            };
             $outputPath = $outputDirectory.'/'.pathinfo($inputPath, PATHINFO_FILENAME).'.'.$extension;
 
             if ($extension === 'html') {
                 File::put($outputDirectory.'/logo.png', 'image');
                 File::put($outputPath, '<html><body><h1>Report</h1><p>Editable text</p><img src="logo.png"></body></html>');
+            } elseif ($extension === 'docx') {
+                $archive = new ZipArchive;
+                $archive->open($outputPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+                $archive->addFromString('word/document.xml', '<document><p>LibreOffice fallback</p></document>');
+                $archive->close();
             } else {
                 File::put($outputPath, 'editable doc');
             }
@@ -71,9 +96,44 @@ class FakeConversionProcessRunner extends ConversionProcessRunner
         }
 
         if ($tool === 'pdftotext') {
-            File::put($command[count($command) - 1], 'Selectable text');
+            $destination = $command[count($command) - 1];
+
+            if ($destination === '-') {
+                return $this->hasExtractableText
+                    ? 'Selectable text for detection purposes here.'
+                    : '';
+            }
+
+            File::put($destination, 'Selectable text');
 
             return '';
+        }
+
+        if (in_array($tool, ['python3', 'python'], true)) {
+            $script = (string) ($command[1] ?? '');
+
+            if (str_contains($script, 'pdf_to_docx.py')) {
+                if ($this->failHybridDocx) {
+                    throw new RuntimeException('hybrid pdf_to_docx failed');
+                }
+
+                $outputPath = $command[3];
+                $archive = new ZipArchive;
+                $archive->open($outputPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+                $archive->addFromString('word/document.xml', '<document><p>Editable text</p></document>');
+                $archive->close();
+
+                return '';
+            }
+
+            if (str_contains($script, 'respace_docx.py')) {
+                $outputIndex = array_search('-o', $command, true);
+                $inputPath = $command[2];
+                $outputPath = $command[$outputIndex + 1];
+                File::copy($inputPath, $outputPath);
+
+                return '';
+            }
         }
 
         throw new RuntimeException("Unexpected test command: {$tool}");
@@ -99,7 +159,7 @@ it('exposes every required target format', function () {
         ->toBe(['docx', 'doc', 'jpg', 'jpeg', 'png', 'html', 'txt']);
 });
 
-it('reconstructs an editable docx after applying OCR', function () {
+it('reconstructs an editable docx without OCR when the PDF already has text', function () {
     $runner = new FakeConversionProcessRunner;
     $service = new PdfConversionService($runner);
 
@@ -114,7 +174,61 @@ it('reconstructs an editable docx after applying OCR', function () {
         ->mime_type->toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
         ->and(File::exists($result['path']))->toBeTrue()
         ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
-        ->toBe(['pdfinfo', 'ocrmypdf', 'pdf2docx']);
+        ->toBe(['pdfinfo', 'pdftotext', 'python3', 'python3']);
+});
+
+it('applies OCR only when the PDF has no extractable text', function () {
+    $runner = new FakeConversionProcessRunner;
+    $runner->hasExtractableText = false;
+    $service = new PdfConversionService($runner);
+
+    $result = $service->convertFromPdf(
+        Storage::disk('local')->path('uploads/source.pdf'),
+        'docx',
+    );
+
+    expect($result['extension'])->toBe('docx')
+        ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
+        ->toBe(['pdfinfo', 'pdftotext', 'ocrmypdf', 'python3', 'python3']);
+});
+
+it('continues conversion when OCR fails on a scanned PDF', function () {
+    $runner = new FakeConversionProcessRunner;
+    $runner->hasExtractableText = false;
+    $runner->failOcr = true;
+    $service = new PdfConversionService($runner);
+
+    $result = $service->convertFromPdf(
+        Storage::disk('local')->path('uploads/source.pdf'),
+        'docx',
+    );
+
+    expect($result['extension'])->toBe('docx')
+        ->and(File::exists($result['path']))->toBeTrue()
+        ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
+        ->toBe(['pdfinfo', 'pdftotext', 'ocrmypdf', 'python3', 'python3']);
+});
+
+it('falls back to LibreOffice when editable reconstruction fails', function () {
+    $runner = new FakeConversionProcessRunner;
+    $runner->failHybridDocx = true;
+    $runner->failPdf2Docx = true;
+    $service = new PdfConversionService($runner);
+
+    $result = $service->convertFromPdf(
+        Storage::disk('local')->path('uploads/source.pdf'),
+        'docx',
+    );
+
+    $archive = new ZipArchive;
+    $archive->open($result['path']);
+    $documentXml = $archive->getFromName('word/document.xml');
+    $archive->close();
+
+    expect($result['extension'])->toBe('docx')
+        ->and($documentXml)->toContain('LibreOffice fallback')
+        ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
+        ->toBe(['pdfinfo', 'pdftotext', 'python3', 'pdf2docx', 'soffice', 'python3']);
 });
 
 it('creates semantic self-contained HTML through the editable document pipeline', function () {
@@ -147,7 +261,7 @@ it('creates editable legacy DOC output through LibreOffice', function () {
         ->mime_type->toBe('application/msword')
         ->and(File::exists($result['path']))->toBeTrue()
         ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
-        ->toBe(['pdfinfo', 'ocrmypdf', 'pdf2docx', 'soffice']);
+        ->toBe(['pdfinfo', 'pdftotext', 'python3', 'python3', 'soffice']);
 });
 
 it('retains OCR-aware plain text conversion for backward compatibility', function () {
@@ -164,7 +278,55 @@ it('retains OCR-aware plain text conversion for backward compatibility', functio
         ->mime_type->toBe('text/plain; charset=UTF-8')
         ->and(File::get($result['path']))->toBe('Selectable text')
         ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
-        ->toBe(['pdfinfo', 'ocrmypdf', 'pdftotext']);
+        ->toBe(['pdfinfo', 'pdftotext', 'pdftotext']);
+});
+
+it('repairs fused words in reconstructed DOCX via respacer', function () {
+    $runner = new class extends FakeConversionProcessRunner
+    {
+        public function run(array $command, int $timeout, ?string $workingDirectory = null): string
+        {
+            if (in_array(basename($command[0]), ['python3', 'python'], true) && str_contains((string) ($command[1] ?? ''), 'respace_docx.py')) {
+                $this->commands[] = $command;
+                $outputIndex = array_search('-o', $command, true);
+                $inputPath = $command[2];
+                $outputPath = $command[$outputIndex + 1];
+                $archive = new ZipArchive;
+                $archive->open($outputPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+                $archive->addFromString('word/document.xml', '<document><p>The quick brown fox</p></document>');
+                $archive->close();
+
+                return '';
+            }
+
+            if (in_array(basename($command[0]), ['python3', 'python'], true) && str_contains((string) ($command[1] ?? ''), 'pdf_to_docx.py')) {
+                $this->commands[] = $command;
+                $archive = new ZipArchive;
+                $archive->open($command[3], ZipArchive::CREATE | ZipArchive::OVERWRITE);
+                $archive->addFromString('word/document.xml', '<document><p>Thequickbrownfox</p></document>');
+                $archive->close();
+
+                return '';
+            }
+
+            return parent::run($command, $timeout, $workingDirectory);
+        }
+    };
+    $service = new PdfConversionService($runner);
+
+    $result = $service->convertFromPdf(
+        Storage::disk('local')->path('uploads/source.pdf'),
+        'docx',
+    );
+
+    $archive = new ZipArchive;
+    $archive->open($result['path']);
+    $documentXml = $archive->getFromName('word/document.xml');
+    $archive->close();
+
+    expect($documentXml)->toContain('The quick brown fox')
+        ->and(collect($runner->commands)->map(fn (array $command) => basename($command[0]))->all())
+        ->toContain('python3');
 });
 
 it('packages every rendered page in natural order at 300 DPI', function () {

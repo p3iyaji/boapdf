@@ -545,12 +545,18 @@ it('converts a PDF and records a ConversionLog', function () {
             'files' => [Storage::disk('local')->path('converted/out.txt')],
         ]);
 
-    $this->actingAs($this->user)
+    $response = $this->actingAs($this->user)
         ->post(route('pdf.convert.store'), [
             'document_id' => $source->id,
             'target' => 'txt',
-        ])
-        ->assertOk(); // returns a download response
+        ]);
+
+    $converted = Document::query()
+        ->where('parent_document_id', $source->id)
+        ->where('operation_type', Document::OP_CONVERTED)
+        ->sole();
+
+    $response->assertRedirect(route('pdf.convert.progress', $converted));
 
     expect(ConversionLog::where('target_format', 'txt')->where('status', 'success')->exists())->toBeTrue();
 });
