@@ -52,6 +52,32 @@ it('rejects bad credentials on login', function () {
     expect(auth()->check())->toBeFalse();
 });
 
+it('logs out and shows the login page', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('logout'))
+        ->assertRedirect(route('login'))
+        ->assertStatus(303);
+
+    expect(auth()->check())->toBeFalse();
+
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertSee('Sign in', false);
+});
+
+it('redirects to login instead of 419 when the logout csrf token is stale', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('logout'), ['_token' => 'invalid-token'])
+        ->assertRedirect(route('login'))
+        ->assertStatus(303);
+
+    expect(auth()->check())->toBeFalse();
+});
+
 it('accepts good credentials and lands on the dashboard', function () {
     User::factory()->create([
         'email' => 'grace@example.com',
