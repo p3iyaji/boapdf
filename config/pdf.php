@@ -76,7 +76,24 @@ return [
         'ocr_enabled' => (bool) env('PDF_CONVERSION_OCR_ENABLED', true),
         'ocr_language' => env('PDF_CONVERSION_OCR_LANGUAGE', 'eng'),
         'ocr_jobs' => (int) env('PDF_CONVERSION_OCR_JOBS', 2),
+        /*
+        | Minimum non-whitespace characters from pdftotext before treating a PDF
+        | as already having a usable text layer (OCR is skipped).
+        */
+        'min_extractable_chars' => (int) env('PDF_CONVERSION_MIN_EXTRACTABLE_CHARS', 20),
         'docx_jobs' => (int) env('PDF_CONVERSION_DOCX_JOBS', 2),
+        'docx_multi_processing' => (bool) env('PDF_CONVERSION_DOCX_MULTI_PROCESSING', false),
+        /*
+        | After DOCX reconstruction, repair missing word spaces at paragraph level
+        | (pdf2docx often emits one Word run per glyph with no spaces between runs).
+        */
+        'docx_respace_enabled' => (bool) env('PDF_CONVERSION_DOCX_RESPACE_ENABLED', true),
+        /*
+        | Flowchart / ERD pages are detected and rasterized before pdf2docx so
+        | diagrams stay visually intact (vector reconstruction cannot edit them).
+        */
+        'diagram_raster_enabled' => (bool) env('PDF_CONVERSION_DIAGRAM_RASTER_ENABLED', true),
+        'diagram_raster_dpi' => (int) env('PDF_CONVERSION_DIAGRAM_RASTER_DPI', 220),
         'process_timeout' => (int) env('PDF_CONVERSION_PROCESS_TIMEOUT', 120),
         'document_timeout' => (int) env('PDF_CONVERSION_DOCUMENT_TIMEOUT', 900),
         'ocr_timeout' => (int) env('PDF_CONVERSION_OCR_TIMEOUT', 1800),

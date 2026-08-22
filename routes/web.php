@@ -134,6 +134,10 @@ Route::middleware(['auth', 'active', 'not-disposable-email'])->group(function ()
             Route::post('/convert', [ConvertController::class, 'store'])
                 ->middleware('throttle:pdf-heavy')
                 ->name('convert.store');
+            Route::get('/convert/{document}/progress', [ConvertController::class, 'progress'])
+                ->name('convert.progress');
+            Route::get('/convert/{document}/status', [ConvertController::class, 'status'])
+                ->name('convert.status');
 
             Route::get('/create', [CreateController::class, 'create'])->name('create.create');
             Route::post('/create', [CreateController::class, 'store'])
