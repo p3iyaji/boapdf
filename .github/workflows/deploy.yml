@@ -137,6 +137,8 @@ jobs:
             git fetch origin main
             git checkout main
             git pull origin main
+            # boapdf.com is served by host Apache/PHP, not the Docker nginx port.
+            php artisan migrate --force --no-interaction
             docker compose build
             docker compose up -d
             docker compose exec -T app php artisan migrate --force
