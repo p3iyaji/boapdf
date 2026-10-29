@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -14,92 +13,52 @@ class EditPdfRequest extends FormRequest
     }
 
     /**
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, array<int, mixed|string>|string>
      */
     public function rules(): array
     {
         return [
-            'replacements' => ['sometimes', 'array', 'max:30'],
-            'replacements.*.page' => ['required', 'integer', 'min:1'],
-            'replacements.*.rects' => ['required', 'array', 'min:1', 'max:40'],
-            'replacements.*.rects.*' => ['array', 'size:4'],
-            'replacements.*.rects.*.*' => ['numeric'],
-            'replacements.*.text' => ['required', 'string', 'max:500'],
-            'replacements.*.size' => ['nullable', 'numeric', 'min:6', 'max:72'],
-            'highlights' => ['sometimes', 'array', 'max:40'],
-            'highlights.*.page' => ['required', 'integer', 'min:1'],
-            'highlights.*.rects' => ['required', 'array', 'min:1', 'max:80'],
-            'highlights.*.rects.*' => ['array', 'size:4'],
-            'highlights.*.rects.*.*' => ['numeric'],
-            'covers' => ['sometimes', 'array', 'max:40'],
-            'covers.*.page' => ['required', 'integer', 'min:1'],
-            'covers.*.rect' => ['required', 'array', 'size:4'],
-            'covers.*.rect.*' => ['numeric'],
-            'redactions' => ['sometimes', 'array', 'max:40'],
-            'redactions.*.page' => ['required', 'integer', 'min:1'],
-            'redactions.*.rect' => ['required', 'array', 'size:4'],
-            'redactions.*.rect.*' => ['numeric'],
-            'texts' => ['sometimes', 'array', 'max:40'],
-            'texts.*.page' => ['required', 'integer', 'min:1'],
-            'texts.*.rect' => ['required', 'array', 'size:4'],
-            'texts.*.rect.*' => ['numeric'],
-            'texts.*.text' => ['required', 'string', 'max:2000'],
-            'texts.*.size' => ['nullable', 'numeric', 'min:6', 'max:72'],
-            'texts.*.color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'images' => ['sometimes', 'array', 'max:15'],
-            'images.*.page' => ['required', 'integer', 'min:1'],
-            'images.*.rect' => ['required', 'array', 'size:4'],
-            'images.*.rect.*' => ['numeric'],
-            'images.*.image' => ['required', 'string', 'max:4000000'],
-            'fields' => ['sometimes', 'array', 'max:200'],
-            'fields.*.name' => ['required', 'string', 'max:200'],
-            'fields.*.value' => ['nullable'],
-            'flatten' => ['sometimes', 'boolean'],
+            'annotations' => ['required', 'array', 'min:1', 'max:50'],
+            'annotations.*.type' => ['required', 'string', 'in:text,image,draw,highlight'],
+            'annotations.*.page' => ['required', 'integer', 'min:1'],
+            'annotations.*.x' => ['required', 'numeric', 'min:0'],
+            'annotations.*.y' => ['required', 'numeric', 'min:0'],
+            'annotations.*.width' => ['required', 'numeric', 'min:2', 'max:400'],
+            'annotations.*.height' => ['nullable', 'numeric', 'min:2', 'max:400'],
+            'annotations.*.text' => ['nullable', 'string', 'max:2000'],
+            'annotations.*.font_size' => ['nullable', 'numeric', 'min:6', 'max:72'],
+            'annotations.*.color' => ['nullable', 'string', 'max:20'],
+            'annotations.*.image' => ['nullable', 'string', 'max:4000000'],
         ];
     }
 
-    /**
-     * @return array<int, callable>
-     */
-    public function after(): array
+    public function withValidator(Validator $validator): void
     {
-        return [
-            function (Validator $validator): void {
-                $groups = ['replacements', 'highlights', 'covers', 'redactions', 'texts', 'images', 'fields'];
-                $count = 0;
-
-                foreach ($groups as $group) {
-                    $count += count($this->input($group, []));
+        $validator->after(function (Validator $v): void {
+            foreach ($this->input('annotations', []) as $i => $annotation) {
+                if (! is_array($annotation)) {
+                    continue;
                 }
-
-                if ($count === 0) {
-                    $validator->errors()->add('edit', 'Add an edit before saving.');
+                $type = $annotation['type'] ?? '';
+                if ($type === 'text' && blank($annotation['text'] ?? null)) {
+                    $v->errors()->add("annotations.$i.text", 'Text annotations require text.');
                 }
-
-                foreach ($this->input('images', []) as $index => $image) {
-                    if (! is_array($image)) {
-                        continue;
-                    }
-
-                    $data = (string) ($image['image'] ?? '');
-
-                    if (! preg_match('#^data:image/(png|jpe?g);base64,#i', $data)) {
-                        $validator->errors()->add("images.$index.image", 'Images must be PNG or JPEG.');
-                    }
+                if (in_array($type, ['image', 'draw'], true) && blank($annotation['image'] ?? null)) {
+                    $v->errors()->add("annotations.$i.image", 'Image annotations require an image.');
                 }
-
-                foreach ($this->input('fields', []) as $index => $field) {
-                    if (! is_array($field) || ! array_key_exists('value', $field) || $field['value'] === null) {
-                        continue;
-                    }
-
-                    $value = $field['value'];
-
-                    if (is_array($value) || (is_string($value) && strlen($value) > 2000)) {
-                        $validator->errors()->add("fields.$index.value", 'That field value is too long.');
-                    }
+                if (in_array($type, ['image', 'draw'], true)
+                    && filled($annotation['image'] ?? null)
+                    && ! preg_match('/^data:image\/(png|jpe?g|webp|gif);base64,/i', (string) $annotation['image'])
+                ) {
+                    $v->errors()->add("annotations.$i.image", 'Image must be a valid data URL.');
                 }
-            },
-        ];
+                if ($type === 'draw'
+                    && filled($annotation['image'] ?? null)
+                    && ! str_starts_with((string) $annotation['image'], 'data:image/png;base64,')
+                ) {
+                    $v->errors()->add("annotations.$i.image", 'Drawings must be PNG data URLs.');
+                }
+            }
+        });
     }
 }

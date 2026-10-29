@@ -38,7 +38,7 @@
 >
     <h2 class="text-lg font-semibold text-teal-950">Scan from camera</h2>
     <p class="mt-1 text-sm text-teal-900/70">
-        Photograph one or more pages with your device camera or photo library. Each image becomes a PDF page.
+        Photograph one or more pages with your device camera or photo library. Each image becomes a full-page PDF sheet — tap a preview to crop and zoom so it fills the signing window.
     </p>
     <div class="mt-4 flex flex-wrap items-center gap-2">
         <button
@@ -141,14 +141,86 @@
                 />
             </label>
 
-            <p class="mt-2 text-xs text-teal-800/70"><span x-text="frames.length"></span> page(s) queued</p>
+            <p class="mt-2 text-sm font-medium text-teal-950" x-show="frames.length > 0 && !editing">
+                <span x-text="frames.length"></span> page(s) queued — tap a page below to crop &amp; zoom for full-screen signing
+            </p>
+            <p class="mt-2 text-xs text-teal-800/70" x-show="frames.length === 0">Capture or add photos, then edit each page size before saving.</p>
 
-            <div class="mt-3 grid max-h-32 grid-cols-4 gap-2 overflow-y-auto sm:max-h-40" x-show="frames.length > 0">
+            <div class="mt-3 grid max-h-48 grid-cols-2 gap-3 overflow-y-auto sm:max-h-56 sm:grid-cols-3" x-show="frames.length > 0 && !editing">
                 <template x-for="(f, i) in frames" :key="i">
-                    <div class="aspect-square overflow-hidden rounded-lg border border-teal-900/10 bg-white">
-                        <img :src="f.preview" alt="" class="h-full w-full object-cover" />
-                    </div>
+                    <button
+                        type="button"
+                        class="overflow-hidden rounded-lg border-2 border-amber-500/70 bg-white text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        @click="openEditor(i)"
+                        :title="'Edit page ' + (i + 1) + ' size'"
+                    >
+                        <div class="aspect-[3/4] overflow-hidden bg-stone-100">
+                            <img :src="f.preview" alt="" class="h-full w-full object-cover" />
+                        </div>
+                        <span class="block bg-amber-600 px-2 py-1.5 text-center text-xs font-semibold text-white">
+                            Edit size — page <span x-text="i + 1"></span>
+                        </span>
+                    </button>
                 </template>
+            </div>
+
+            <div x-show="editing" x-cloak class="mt-4 space-y-3 rounded-xl border border-teal-900/15 bg-white p-3">
+                <div class="flex items-center justify-between gap-2">
+                    <h4 class="text-sm font-semibold text-teal-950">
+                        Edit page size <span class="font-normal text-teal-800/70" x-text="editing ? '(page ' + (editIndex + 1) + ')' : ''"></span>
+                    </h4>
+                    <button type="button" class="text-xs font-medium text-teal-800 hover:text-teal-950" @click="cancelEditor()">Back</button>
+                </div>
+                <p class="text-xs text-teal-800/70">Drag to pan. Zoom so the photo fills the A4 frame — that frame is what you see full-screen when signing.</p>
+                <div
+                    class="relative mx-auto w-full max-w-[14rem] overflow-hidden rounded-lg border border-teal-900/20 bg-stone-200 shadow-inner"
+                    style="aspect-ratio: 210 / 297;"
+                    x-ref="cropViewport"
+                    @pointerdown="startPan($event)"
+                    @pointermove="onPan($event)"
+                    @pointerup="endPan($event)"
+                    @pointercancel="endPan($event)"
+                    @pointerleave="endPan($event)"
+                >
+                    <img
+                        x-ref="cropImage"
+                        :src="editPreview"
+                        alt=""
+                        class="absolute left-0 top-0 max-w-none origin-top-left select-none touch-none"
+                        draggable="false"
+                        :style="cropImageStyle()"
+                        @load="onCropImageLoad()"
+                    />
+                </div>
+                <label class="block">
+                    <span class="flex items-center justify-between text-xs font-medium text-teal-950">
+                        <span>Zoom</span>
+                        <span class="tabular-nums text-teal-800/70" x-text="Math.round(editZoom * 100) + '%'"></span>
+                    </span>
+                    <input
+                        type="range"
+                        min="1"
+                        max="4"
+                        step="0.01"
+                        x-model.number="editZoom"
+                        @input="clampPan()"
+                        class="mt-1 w-full accent-amber-600"
+                    />
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="fillPage()" class="rounded-lg border border-teal-900/20 px-3 py-1.5 text-xs font-semibold text-teal-900 hover:bg-teal-50">
+                        Fill page
+                    </button>
+                    <button type="button" @click="fitInside()" class="rounded-lg border border-teal-900/20 px-3 py-1.5 text-xs font-medium text-teal-900 hover:bg-teal-50">
+                        Fit inside
+                    </button>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-teal-900/10 pt-3">
+                    <button type="button" @click="cancelEditor()" class="rounded-lg px-3 py-1.5 text-sm font-medium text-teal-900 hover:bg-teal-900/10">Cancel</button>
+                    <button type="button" @click="applyEditor()" class="rounded-lg bg-amber-600 px-4 py-1.5 text-sm font-semibold text-white shadow hover:bg-amber-500">
+                        Apply size
+                    </button>
+                </div>
             </div>
 
             <div class="mt-5 flex flex-wrap justify-end gap-2 border-t border-teal-900/10 pt-4">
@@ -156,7 +228,7 @@
                 <button
                     type="button"
                     @click="submitCapture()"
-                    :disabled="frames.length === 0"
+                    :disabled="frames.length === 0 || editing"
                     class="rounded-lg bg-gradient-to-r from-teal-800 to-teal-950 px-5 py-2 text-sm font-semibold text-amber-50 shadow disabled:opacity-40"
                 >
                     Save as PDF
@@ -178,9 +250,100 @@
     </form>
 </div>
 
-@if ($documents->isEmpty())
+@if (! $documents->isEmpty() || $filtersActive)
+<form
+    method="GET"
+    action="{{ route('pdf.index') }}"
+    x-data="pdfLibraryFilters()"
+    x-ref="filters"
+    class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5"
+>
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div class="min-w-0 flex-1">
+            <label for="pdf-search" class="mb-1 block text-xs font-medium text-gray-600">Search</label>
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/>
+                </svg>
+                <input
+                    id="pdf-search"
+                    type="search"
+                    name="q"
+                    value="{{ $search }}"
+                    x-model="q"
+                    @input="debounceSubmit()"
+                    placeholder="Search by filename&hellip;"
+                    autocomplete="off"
+                    class="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:w-auto lg:w-80">
+            <div>
+                <label for="pdf-status" class="mb-1 block text-xs font-medium text-gray-600">Status</label>
+                <select
+                    id="pdf-status"
+                    name="status"
+                    x-model="status"
+                    @change="submitNow()"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                    <option value="">Any</option>
+                    @foreach ($statuses as $option)
+                        <option value="{{ $option }}" @selected($status === $option)>{{ ucfirst($option) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="pdf-operation" class="mb-1 block text-xs font-medium text-gray-600">Type</label>
+                <select
+                    id="pdf-operation"
+                    name="operation"
+                    x-model="operation"
+                    @change="submitNow()"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                    <option value="">Any</option>
+                    @foreach ($operations as $option)
+                        <option value="{{ $option }}" @selected($operation === $option)>{{ ucfirst(str_replace('_', ' ', $option)) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 lg:pb-0.5">
+            <noscript>
+                <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Filter</button>
+            </noscript>
+            @if ($filtersActive)
+                <a
+                    href="{{ route('pdf.index') }}"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    Clear
+                </a>
+            @endif
+        </div>
+    </div>
+    @if ($filtersActive)
+        <p class="mt-3 text-xs text-gray-500">
+            Showing {{ $documents->total() }} {{ \Illuminate\Support\Str::plural('result', $documents->total()) }}
+            @if ($search !== '')
+                for “{{ $search }}”
+            @endif
+        </p>
+    @endif
+</form>
+@endif
+
+@if ($documents->isEmpty() && ! $filtersActive)
     <div class="rounded-xl bg-white p-12 text-center shadow">
         <p class="text-gray-500">You haven't uploaded any PDFs yet.</p>
+    </div>
+@elseif ($documents->isEmpty())
+    <div class="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
+        <p class="font-medium text-gray-800">No PDFs match your filters</p>
+        <p class="mt-1 text-sm text-gray-500">Try a different name, status, or type.</p>
+        <a href="{{ route('pdf.index') }}" class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">Clear filters</a>
     </div>
 @else
     {{-- Phones & tablets: stacked cards with full action grid (table from lg) --}}
@@ -189,7 +352,14 @@
             <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <a href="{{ route('pdf.show', $doc) }}" class="block font-semibold text-blue-600 hover:text-blue-800">{{ $doc->original_name }}</a>
                 <p class="mt-1 text-xs leading-relaxed text-gray-500">
-                    {{ ucfirst($doc->operation_type) }}
+                    {{ ucfirst(str_replace('_', ' ', $doc->operation_type)) }}
+                    <span class="text-gray-300">&middot;</span>
+                    <span @class([
+                        'font-medium',
+                        'text-emerald-700' => $doc->status === \App\Models\Document::STATUS_COMPLETED,
+                        'text-amber-700' => in_array($doc->status, [\App\Models\Document::STATUS_PENDING, \App\Models\Document::STATUS_PROCESSING], true),
+                        'text-red-700' => $doc->status === \App\Models\Document::STATUS_FAILED,
+                    ])>{{ ucfirst($doc->status) }}</span>
                     <span class="text-gray-300">&middot;</span> {{ $doc->pages }} pages
                     <span class="text-gray-300">&middot;</span> {{ $doc->human_file_size }}
                     <span class="text-gray-300">&middot;</span> {{ $doc->created_at->diffForHumans() }}
@@ -213,6 +383,7 @@
                     <tr>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Name</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Type</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Status</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Pages</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Size</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:px-6">Uploaded</th>
@@ -227,7 +398,21 @@
                             <td class="max-w-[14rem] px-4 py-3 lg:max-w-xs lg:px-6 lg:py-4">
                                 <a href="{{ route('pdf.show', $doc) }}" class="font-medium text-blue-600 hover:text-blue-800">{{ $doc->original_name }}</a>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ ucfirst($doc->operation_type) }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ ucfirst(str_replace('_', ' ', $doc->operation_type)) }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm lg:px-6 lg:py-4">
+                                <span @class([
+                                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                                    'bg-emerald-50 text-emerald-800' => $doc->status === \App\Models\Document::STATUS_COMPLETED,
+                                    'bg-amber-50 text-amber-800' => in_array($doc->status, [\App\Models\Document::STATUS_PENDING, \App\Models\Document::STATUS_PROCESSING], true),
+                                    'bg-red-50 text-red-800' => $doc->status === \App\Models\Document::STATUS_FAILED,
+                                    'bg-gray-100 text-gray-700' => ! in_array($doc->status, [
+                                        \App\Models\Document::STATUS_COMPLETED,
+                                        \App\Models\Document::STATUS_PENDING,
+                                        \App\Models\Document::STATUS_PROCESSING,
+                                        \App\Models\Document::STATUS_FAILED,
+                                    ], true),
+                                ])>{{ ucfirst($doc->status) }}</span>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->pages }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->human_file_size }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 lg:px-6 lg:py-4">{{ $doc->created_at->diffForHumans() }}</td>
@@ -252,7 +437,26 @@
 
 @push('scripts')
 <script>
+function pdfLibraryFilters() {
+    return {
+        q: @js($search),
+        status: @js($status),
+        operation: @js($operation),
+        timer: null,
+        debounceSubmit() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => this.submitNow(), 300);
+        },
+        submitNow() {
+            clearTimeout(this.timer);
+            this.$refs.filters.requestSubmit();
+        },
+    };
+}
+
 function cameraCapture() {
+    const A4_RATIO = 210 / 297;
+
     return {
         open: false,
         mode: 'photos',
@@ -260,6 +464,20 @@ function cameraCapture() {
         frames: [],
         error: null,
         title: '',
+        editing: false,
+        editIndex: -1,
+        editPreview: '',
+        editZoom: 1,
+        editBaseZoom: 1,
+        editOffsetX: 0,
+        editOffsetY: 0,
+        editNaturalW: 0,
+        editNaturalH: 0,
+        panActive: false,
+        panStartX: 0,
+        panStartY: 0,
+        panOriginX: 0,
+        panOriginY: 0,
         getUserMediaFn() {
             if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
                 return (constraints) => navigator.mediaDevices.getUserMedia(constraints);
@@ -381,6 +599,8 @@ function cameraCapture() {
 
             if (this.frames.length === 0 && !this.error) {
                 this.error = 'No usable photos were selected. Try JPEG or PNG images.';
+            } else if (this.frames.length > 0) {
+                this.openEditor(this.frames.length - 1);
             }
 
             event.target.value = '';
@@ -447,6 +667,7 @@ function cameraCapture() {
             }
         },
         closeModal() {
+            this.cancelEditor();
             this.stopStream();
             this.frames.forEach((f) => {
                 if (f.preview) {
@@ -479,15 +700,20 @@ function cameraCapture() {
                 const preview = URL.createObjectURL(blob);
                 this.frames.push({ preview, file });
                 this.error = null;
+                this.openEditor(this.frames.length - 1);
             }, 'image/jpeg', 0.9);
         },
         removeLast() {
+            if (this.editing) {
+                this.cancelEditor();
+            }
             const f = this.frames.pop();
             if (f && f.preview) {
                 URL.revokeObjectURL(f.preview);
             }
         },
         clearAll() {
+            this.cancelEditor();
             this.frames.forEach((f) => {
                 if (f.preview) {
                     URL.revokeObjectURL(f.preview);
@@ -495,7 +721,203 @@ function cameraCapture() {
             });
             this.frames = [];
         },
+        openEditor(index) {
+            const frame = this.frames[index];
+            if (!frame) {
+                return;
+            }
+            this.editing = true;
+            this.editIndex = index;
+            this.editPreview = frame.preview;
+            this.editZoom = 1;
+            this.editBaseZoom = 1;
+            this.editOffsetX = 0;
+            this.editOffsetY = 0;
+            this.editNaturalW = 0;
+            this.editNaturalH = 0;
+            this.$nextTick(() => {
+                const img = this.$refs.cropImage;
+                if (img && img.complete && img.naturalWidth) {
+                    this.onCropImageLoad();
+                }
+            });
+        },
+        cancelEditor() {
+            this.editing = false;
+            this.editIndex = -1;
+            this.editPreview = '';
+            this.panActive = false;
+        },
+        viewportSize() {
+            const vp = this.$refs.cropViewport;
+            if (!vp) {
+                return { w: 0, h: 0 };
+            }
+            return { w: vp.clientWidth, h: vp.clientHeight };
+        },
+        onCropImageLoad() {
+            const img = this.$refs.cropImage;
+            if (!img) {
+                return;
+            }
+            this.editNaturalW = img.naturalWidth || img.width;
+            this.editNaturalH = img.naturalHeight || img.height;
+            this.fillPage();
+        },
+        coverZoom() {
+            const { w, h } = this.viewportSize();
+            if (!w || !h || !this.editNaturalW || !this.editNaturalH) {
+                return 1;
+            }
+            return Math.max(w / this.editNaturalW, h / this.editNaturalH);
+        },
+        containZoom() {
+            const { w, h } = this.viewportSize();
+            if (!w || !h || !this.editNaturalW || !this.editNaturalH) {
+                return 1;
+            }
+            return Math.min(w / this.editNaturalW, h / this.editNaturalH);
+        },
+        fillPage() {
+            this.editBaseZoom = this.coverZoom();
+            this.editZoom = 1;
+            this.editOffsetX = 0;
+            this.editOffsetY = 0;
+            this.clampPan();
+        },
+        fitInside() {
+            this.editBaseZoom = this.containZoom();
+            this.editZoom = 1;
+            this.editOffsetX = 0;
+            this.editOffsetY = 0;
+            this.clampPan();
+        },
+        displayScale() {
+            return this.editBaseZoom * this.editZoom;
+        },
+        cropImageStyle() {
+            const scale = this.displayScale();
+            const w = this.editNaturalW * scale;
+            const h = this.editNaturalH * scale;
+            const { w: vw, h: vh } = this.viewportSize();
+            const left = (vw - w) / 2 + this.editOffsetX;
+            const top = (vh - h) / 2 + this.editOffsetY;
+            return `width:${w}px;height:${h}px;transform:translate(${left}px, ${top}px);`;
+        },
+        clampPan() {
+            const { w: vw, h: vh } = this.viewportSize();
+            if (!vw || !vh) {
+                return;
+            }
+            const scale = this.displayScale();
+            const w = this.editNaturalW * scale;
+            const h = this.editNaturalH * scale;
+            const maxX = Math.max(0, (w - vw) / 2);
+            const maxY = Math.max(0, (h - vh) / 2);
+            this.editOffsetX = Math.min(maxX, Math.max(-maxX, this.editOffsetX));
+            this.editOffsetY = Math.min(maxY, Math.max(-maxY, this.editOffsetY));
+        },
+        startPan(event) {
+            if (!this.editing) {
+                return;
+            }
+            this.panActive = true;
+            this.panStartX = event.clientX;
+            this.panStartY = event.clientY;
+            this.panOriginX = this.editOffsetX;
+            this.panOriginY = this.editOffsetY;
+            if (event.currentTarget && event.currentTarget.setPointerCapture) {
+                event.currentTarget.setPointerCapture(event.pointerId);
+            }
+        },
+        onPan(event) {
+            if (!this.panActive) {
+                return;
+            }
+            this.editOffsetX = this.panOriginX + (event.clientX - this.panStartX);
+            this.editOffsetY = this.panOriginY + (event.clientY - this.panStartY);
+            this.clampPan();
+        },
+        endPan(event) {
+            if (!this.panActive) {
+                return;
+            }
+            this.panActive = false;
+            if (event.currentTarget && event.currentTarget.releasePointerCapture) {
+                try {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                } catch (e) {
+                    // ignore
+                }
+            }
+        },
+        applyEditor() {
+            if (!this.editing || this.editIndex < 0) {
+                return;
+            }
+            const { w: vw, h: vh } = this.viewportSize();
+            if (!vw || !vh || !this.editNaturalW || !this.editNaturalH) {
+                this.error = 'Wait for the image to load before applying.';
+                return;
+            }
+
+            const scale = this.displayScale();
+            const dispW = this.editNaturalW * scale;
+            const dispH = this.editNaturalH * scale;
+            const left = (vw - dispW) / 2 + this.editOffsetX;
+            const top = (vh - dispH) / 2 + this.editOffsetY;
+
+            // Map the A4 viewport back into source image pixels.
+            const srcX = Math.max(0, (-left) / scale);
+            const srcY = Math.max(0, (-top) / scale);
+            const srcW = Math.min(this.editNaturalW - srcX, vw / scale);
+            const srcH = Math.min(this.editNaturalH - srcY, vh / scale);
+
+            if (srcW < 2 || srcH < 2) {
+                this.error = 'Crop area is too small. Zoom out a little and try again.';
+                return;
+            }
+
+            // Export at a resolution that looks sharp on an A4 signing canvas (~150–200 dpi).
+            const targetW = Math.min(1654, Math.max(800, Math.round(srcW)));
+            const targetH = Math.round(targetW / A4_RATIO);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                this.error = 'Could not crop this image.';
+                return;
+            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetW, targetH);
+
+            const img = this.$refs.cropImage;
+            ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    this.error = 'Could not save the cropped page.';
+                    return;
+                }
+                const old = this.frames[this.editIndex];
+                if (old && old.preview) {
+                    URL.revokeObjectURL(old.preview);
+                }
+                const name = 'page-' + (this.editIndex + 1) + '.jpg';
+                const file = new File([blob], name, { type: 'image/jpeg' });
+                const preview = URL.createObjectURL(blob);
+                this.frames.splice(this.editIndex, 1, { preview, file });
+                this.error = null;
+                this.cancelEditor();
+            }, 'image/jpeg', 0.92);
+        },
         submitCapture() {
+            if (this.editing) {
+                this.error = 'Apply or cancel page size editing before saving.';
+                return;
+            }
             if (this.frames.length === 0) {
                 this.error = 'Add at least one page before saving.';
                 return;

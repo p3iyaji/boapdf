@@ -26,12 +26,32 @@ class PdfController extends Controller
 
     public function index(Request $request): View
     {
-        $documents = Document::query()
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->paginate(20);
+        $search = $request->string('q')->trim()->toString();
+        $status = $request->string('status')->toString();
+        $operation = $request->string('operation')->toString();
 
-        return view('pdf.index', ['documents' => $documents]);
+        $documents = Document::query()
+            ->forUser($request->user()->id)
+            ->search($search)
+            ->status($status)
+            ->operation($operation)
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $filtersActive = $search !== ''
+            || in_array($status, Document::statuses(), true)
+            || in_array($operation, Document::operationTypes(), true);
+
+        return view('pdf.index', [
+            'documents' => $documents,
+            'search' => $search,
+            'status' => in_array($status, Document::statuses(), true) ? $status : '',
+            'operation' => in_array($operation, Document::operationTypes(), true) ? $operation : '',
+            'filtersActive' => $filtersActive,
+            'statuses' => Document::statuses(),
+            'operations' => Document::operationTypes(),
+        ]);
     }
 
     public function upload(UploadPdfRequest $request): RedirectResponse

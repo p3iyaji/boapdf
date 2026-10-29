@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\Document;
 use App\Models\User;
+use App\Rules\NotDisposableEmail;
+use App\Services\AuditLogger;
+use App\Support\DisposableEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -30,31 +32,71 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        $user->sendEmailVerificationNotification();
+
+        app(AuditLogger::class)->log(
+            action: 'auth.register',
+            description: 'Registered a new account.',
+            subject: $user,
+            actor: $user,
+            request: $request,
+        );
+
+        return redirect()->route('verification.notice');
     }
 
     public function authenticate(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', new NotDisposableEmail],
             'password' => ['required', 'string'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('dashboard'));
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'The provided credentials do not match our records.'])
+                ->onlyInput('email');
         }
 
-        return back()
-            ->withErrors(['email' => 'The provided credentials do not match our records.'])
-            ->onlyInput('email');
+        $user = Auth::user();
+
+        if ($user === null || DisposableEmail::isDisposable($user->email)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors(['email' => 'Disposable email addresses are not allowed.'])
+                ->onlyInput('email');
+        }
+
+        if (! $user->isActive()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors(['email' => 'Your account has been deactivated. Contact an administrator.'])
+                ->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        app(AuditLogger::class)->log(
+            action: 'auth.login',
+            description: 'Signed in to the application.',
+            subject: $user,
+            actor: $user,
+            request: $request,
+        );
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function dashboard(): View
@@ -76,12 +118,24 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user !== null) {
+            $auditLogger->log(
+                action: 'auth.logout',
+                description: 'Signed out of the application.',
+                subject: $user,
+                actor: $user,
+                request: $request,
+            );
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('login', status: 303);
     }
 }

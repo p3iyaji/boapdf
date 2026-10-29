@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Support\DocumentsDisk;
 use DOMDocument;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 use ZipArchive;
@@ -106,6 +107,10 @@ class PdfConversionService
             return [$preparedPdf, $pageCount];
         }
 
+        if ($this->pdfHasExtractableText($preparedPdf)) {
+            return [$preparedPdf, $pageCount];
+        }
+
         return [$this->applyOcr($preparedPdf, $workspace), $pageCount];
     }
 
@@ -170,13 +175,51 @@ class PdfConversionService
         return $outputPath;
     }
 
+    private function pdfHasExtractableText(string $pdfPath): bool
+    {
+        $pdfToText = $this->processRunner->find(
+            config('pdf.conversion.pdftotext_path'),
+            ['pdftotext'],
+        );
+
+        if ($pdfToText === null) {
+            return false;
+        }
+
+        try {
+            $extracted = $this->processRunner->run(
+                [$pdfToText, '-enc', 'UTF-8', $pdfPath, '-'],
+                $this->timeout(),
+            );
+        } catch (Throwable) {
+            return false;
+        }
+
+        $compact = preg_replace('/\s+/u', '', $extracted) ?? '';
+        $minimum = max(1, (int) config('pdf.conversion.min_extractable_chars', 20));
+
+        return mb_strlen($compact) >= $minimum;
+    }
+
     private function applyOcr(string $pdfPath, string $workspace): string
     {
         if (! config('pdf.conversion.ocr_enabled', true)) {
             return $pdfPath;
         }
 
-        $ocrMyPdf = $this->requiredTool('ocrmypdf_path', ['ocrmypdf'], 'recognize scanned PDF pages');
+        $ocrMyPdf = $this->processRunner->find(
+            config('pdf.conversion.ocrmypdf_path'),
+            ['ocrmypdf'],
+        );
+
+        if ($ocrMyPdf === null) {
+            Log::warning('PDF conversion skipped OCR because ocrmypdf is unavailable.', [
+                'pdf' => basename($pdfPath),
+            ]);
+
+            return $pdfPath;
+        }
+
         $outputPath = $workspace.'/searchable.pdf';
         $command = [
             $ocrMyPdf,
@@ -201,13 +244,17 @@ class PdfConversionService
 
         try {
             $this->processRunner->run($command, $this->ocrTimeout());
+            $this->assertOutput($outputPath, 'optical character recognition');
+
+            return $outputPath;
         } catch (Throwable $exception) {
-            throw PdfConversionException::failed('optical character recognition', $exception);
+            Log::warning('PDF conversion continued without OCR after OCR failure.', [
+                'pdf' => basename($pdfPath),
+                'error' => $exception->getMessage(),
+            ]);
+
+            return $pdfPath;
         }
-
-        $this->assertOutput($outputPath, 'optical character recognition');
-
-        return $outputPath;
     }
 
     /**
@@ -245,13 +292,28 @@ class PdfConversionService
      */
     private function toDoc(string $pdfPath, int $pageCount, string $workspace): array
     {
-        $docxResult = $this->toDocxWorkspace($pdfPath, $workspace);
-        $docPath = $this->convertWithLibreOffice(
-            $docxResult,
-            'doc:MS Word 97',
-            'doc',
-            $workspace,
-        );
+        try {
+            $docxResult = $this->toDocxWorkspace($pdfPath, $workspace);
+            $docPath = $this->convertWithLibreOffice(
+                $docxResult,
+                'doc:MS Word 97',
+                'doc',
+                $workspace,
+            );
+        } catch (Throwable $exception) {
+            Log::warning('DOC conversion via DOCX failed; importing PDF with LibreOffice.', [
+                'error' => $exception->getMessage(),
+            ]);
+
+            $docPath = $this->convertWithLibreOffice(
+                $pdfPath,
+                'doc:MS Word 97',
+                'doc',
+                $workspace,
+                'writer_pdf_import',
+            );
+        }
+
         $outputPath = $this->moveToConverted($docPath, 'doc');
 
         return $this->result($outputPath, $pageCount, 'doc', 'application/msword');
@@ -268,13 +330,28 @@ class PdfConversionService
      */
     private function toHtml(string $pdfPath, int $pageCount, string $workspace): array
     {
-        $docxPath = $this->toDocxWorkspace($pdfPath, $workspace);
-        $htmlPath = $this->convertWithLibreOffice(
-            $docxPath,
-            'html:HTML (StarWriter)',
-            'html',
-            $workspace,
-        );
+        try {
+            $docxPath = $this->toDocxWorkspace($pdfPath, $workspace);
+            $htmlPath = $this->convertWithLibreOffice(
+                $docxPath,
+                'html:HTML (StarWriter)',
+                'html',
+                $workspace,
+            );
+        } catch (Throwable $exception) {
+            Log::warning('HTML conversion via DOCX failed; importing PDF with LibreOffice.', [
+                'error' => $exception->getMessage(),
+            ]);
+
+            $htmlPath = $this->convertWithLibreOffice(
+                $pdfPath,
+                'html:HTML (StarWriter)',
+                'html',
+                $workspace,
+                'writer_pdf_import',
+            );
+        }
+
         $this->inlineHtmlImages($htmlPath);
         $outputPath = $this->moveToConverted($htmlPath, 'html');
 
@@ -316,34 +393,190 @@ class PdfConversionService
 
     private function toDocxWorkspace(string $pdfPath, string $workspace): string
     {
-        $pdf2docx = $this->requiredTool(
-            'pdf2docx_path',
-            ['pdf2docx'],
-            'create editable Word documents',
-            [base_path('.venv/bin')],
-        );
         $outputPath = $workspace.'/editable.docx';
+        $converted = false;
+
+        if (config('pdf.conversion.diagram_raster_enabled', true)) {
+            $converted = $this->convertWithHybridPdfToDocx($pdfPath, $outputPath);
+        }
+
+        if (! $converted) {
+            $converted = $this->convertWithPdf2DocxCli($pdfPath, $outputPath);
+        }
+
+        if ($converted) {
+            $this->assertOutput($outputPath, 'editable document reconstruction');
+            $this->assertDocx($outputPath);
+            $this->respaceDocx($outputPath, $workspace);
+
+            return $outputPath;
+        }
+
+        Log::warning('pdf2docx is unavailable; falling back to LibreOffice for DOCX.');
+
+        $fallback = $this->convertWithLibreOffice(
+            $pdfPath,
+            'docx:Office Open XML Text',
+            'docx',
+            $workspace,
+            'writer_pdf_import',
+        );
+
+        if ($fallback !== $outputPath) {
+            if (! File::move($fallback, $outputPath)) {
+                throw new PdfConversionException('The converted DOCX could not be staged for download.');
+            }
+        }
+
+        $this->assertDocx($outputPath);
+        $this->respaceDocx($outputPath, $workspace);
+
+        return $outputPath;
+    }
+
+    private function convertWithHybridPdfToDocx(string $pdfPath, string $outputPath): bool
+    {
+        $python = $this->venvPython();
+        $script = base_path('resources/conversion/pdf_to_docx.py');
+
+        if ($python === null || ! is_file($script)) {
+            return false;
+        }
+
+        $dpi = max(72, min(600, (int) config('pdf.conversion.diagram_raster_dpi', 220)));
 
         try {
             $this->processRunner->run(
                 [
-                    $pdf2docx,
-                    'convert',
+                    $python,
+                    $script,
                     $pdfPath,
                     $outputPath,
-                    '--multi_processing=True',
-                    '--cpu_count='.(string) config('pdf.conversion.docx_jobs', 2),
+                    '--dpi',
+                    (string) $dpi,
                 ],
                 $this->documentTimeout(),
             );
+
+            return is_file($outputPath) && filesize($outputPath) > 0;
         } catch (Throwable $exception) {
-            throw PdfConversionException::failed('editable document reconstruction', $exception);
+            Log::warning('Hybrid PDF→DOCX conversion failed; trying pdf2docx CLI.', [
+                'error' => $exception->getMessage(),
+            ]);
+            File::delete($outputPath);
+
+            return false;
+        }
+    }
+
+    private function convertWithPdf2DocxCli(string $pdfPath, string $outputPath): bool
+    {
+        $pdf2docx = $this->processRunner->find(
+            config('pdf.conversion.pdf2docx_path'),
+            ['pdf2docx'],
+            [base_path('.venv/bin')],
+        );
+
+        if ($pdf2docx === null) {
+            return false;
         }
 
-        $this->assertOutput($outputPath, 'editable document reconstruction');
-        $this->assertDocx($outputPath);
+        try {
+            $command = [
+                $pdf2docx,
+                'convert',
+                $pdfPath,
+                $outputPath,
+                '--delete_end_line_hyphen=True',
+                '--clip_image_res_ratio=6.0',
+                '--min_svg_gap_dx=30.0',
+                '--min_svg_gap_dy=20.0',
+                '--parse_stream_table=False',
+                '--extract_stream_table=False',
+                '--list_not_table=True',
+                '--parse_lattice_table=True',
+            ];
 
-        return $outputPath;
+            if (config('pdf.conversion.docx_multi_processing', false)) {
+                $command[] = '--multi_processing=True';
+                $command[] = '--cpu_count='.(string) config('pdf.conversion.docx_jobs', 2);
+            }
+
+            $this->processRunner->run($command, $this->documentTimeout());
+
+            return is_file($outputPath) && filesize($outputPath) > 0;
+        } catch (Throwable $exception) {
+            Log::warning('pdf2docx reconstruction failed; falling back to LibreOffice.', [
+                'error' => $exception->getMessage(),
+            ]);
+            File::delete($outputPath);
+
+            return false;
+        }
+    }
+
+    private function venvPython(): ?string
+    {
+        foreach ([base_path('.venv/bin/python3'), base_path('.venv/bin/python')] as $candidate) {
+            if (is_executable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return $this->processRunner->find(
+            null,
+            ['python3', 'python'],
+            [base_path('.venv/bin')],
+        );
+    }
+
+    /**
+     * Restore missing word spaces that PDF→DOCX reconstruction often drops.
+     *
+     * pdf2docx frequently emits one Word run per glyph/word with no space
+     * characters between runs, so per-run tools cannot see the fused text.
+     * We repair at paragraph level via resources/conversion/respace_docx.py.
+     */
+    private function respaceDocx(string $docxPath, string $workspace): void
+    {
+        if (! config('pdf.conversion.docx_respace_enabled', true)) {
+            return;
+        }
+
+        $venvPython = $this->venvPython();
+        $script = base_path('resources/conversion/respace_docx.py');
+
+        if ($venvPython === null || ! is_file($script)) {
+            Log::warning('DOCX respacing skipped because python3 or respace_docx.py is unavailable.');
+
+            return;
+        }
+
+        $fixedPath = $workspace.'/respaced.docx';
+
+        try {
+            $this->processRunner->run(
+                [
+                    $venvPython,
+                    $script,
+                    $docxPath,
+                    '-o',
+                    $fixedPath,
+                ],
+                $this->documentTimeout(),
+            );
+            $this->assertOutput($fixedPath, 'DOCX word-spacing repair');
+            $this->assertDocx($fixedPath);
+
+            if (! File::move($fixedPath, $docxPath)) {
+                throw new PdfConversionException('The respaced DOCX could not replace the original.');
+            }
+        } catch (Throwable $exception) {
+            Log::warning('DOCX word-spacing repair failed; keeping unrepaired DOCX.', [
+                'error' => $exception->getMessage(),
+            ]);
+            File::delete($fixedPath);
+        }
     }
 
     private function convertWithLibreOffice(
@@ -351,31 +584,38 @@ class PdfConversionService
         string $filter,
         string $extension,
         string $workspace,
+        ?string $inFilter = null,
     ): string {
         $libreOffice = $this->requiredTool(
             'libreoffice_path',
             ['soffice', 'libreoffice'],
             "create {$extension} output",
         );
-        $officeOutput = $workspace.'/office-output';
-        $profile = $workspace.'/libreoffice-profile';
+        $officeOutput = $workspace.'/office-output-'.Str::lower(Str::random(8));
+        $profile = $workspace.'/libreoffice-profile-'.Str::lower(Str::random(8));
         File::ensureDirectoryExists($officeOutput);
         File::ensureDirectoryExists($profile);
 
+        $command = [
+            $libreOffice,
+            '-env:UserInstallation='.$this->fileUrl($profile),
+            '--headless',
+        ];
+
+        if (is_string($inFilter) && $inFilter !== '') {
+            $command[] = '--infilter='.$inFilter;
+        }
+
+        $command = array_merge($command, [
+            '--convert-to',
+            $filter,
+            '--outdir',
+            $officeOutput,
+            $inputPath,
+        ]);
+
         try {
-            $this->processRunner->run(
-                [
-                    $libreOffice,
-                    '-env:UserInstallation='.$this->fileUrl($profile),
-                    '--headless',
-                    '--convert-to',
-                    $filter,
-                    '--outdir',
-                    $officeOutput,
-                    $inputPath,
-                ],
-                $this->documentTimeout(),
-            );
+            $this->processRunner->run($command, $this->documentTimeout());
         } catch (Throwable $exception) {
             throw PdfConversionException::failed("{$extension} generation", $exception);
         }
@@ -557,13 +797,13 @@ class PdfConversionService
     {
         $archive = new ZipArchive;
         $opened = $archive->open($path);
-        $hasDocument = $opened === true && $archive->locateName('word/document.xml') !== false;
+        $documentXml = $opened === true ? $archive->getFromName('word/document.xml') : false;
 
         if ($opened === true) {
             $archive->close();
         }
 
-        if (! $hasDocument) {
+        if ($documentXml === false || $documentXml === '') {
             throw new PdfConversionException(
                 'Editable document reconstruction produced an invalid DOCX file.',
             );

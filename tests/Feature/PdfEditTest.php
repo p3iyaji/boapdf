@@ -2,8 +2,9 @@
 
 use App\Models\Document;
 use App\Models\User;
-use App\Services\PdfEditException;
+use App\Services\PdfConversionService;
 use App\Services\PdfEditService;
+use App\Services\PdfFormFillService;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -11,153 +12,128 @@ beforeEach(function () {
     $this->user = User::factory()->create();
 });
 
-it('shows the editor for a ready pdf', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
-        'original_name' => 'brief.pdf',
+it('shows the edit page for an owned pdf', function () {
+    Storage::disk('local')->put('uploads/doc.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/doc.pdf',
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('pdf.edit.create', $document))
+        ->get(route('pdf.edit.create', $doc))
         ->assertOk()
-        ->assertSee('Edit PDF', false)
-        ->assertSee('function pdfEditor(', false)
-        ->assertSee('Replace', false)
-        ->assertSee('Redact', false);
-
-    $this->actingAs($this->user)
-        ->get(route('pdf.show', $document))
-        ->assertOk()
-        ->assertSee(route('pdf.edit.create', $document), false);
+        ->assertSee('Annotate / write')
+        ->assertSee('Fill form fields');
 });
 
-it('saves content edits as a new document and leaves the original in place', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    Storage::disk('local')->put('edited/result.pdf', '%PDF-1.4 edited');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
-        'original_name' => 'brief.pdf',
-        'pages' => 2,
+it('forbids editing another users document', function () {
+    $owner = User::factory()->create();
+    Storage::disk('local')->put('uploads/doc.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($owner)->create([
+        'file_path' => 'uploads/doc.pdf',
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('pdf.edit.create', $doc))
+        ->assertForbidden();
+});
+
+it('applies annotations and creates an edited document', function () {
+    Storage::disk('local')->put('uploads/doc.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('edited/out.pdf', '%PDF-1.4 edited');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/doc.pdf',
     ]);
 
     $this->mock(PdfEditService::class)
-        ->shouldReceive('applyContent')
+        ->shouldReceive('applyAnnotations')
         ->once()
-        ->andReturn([
-            'path' => Storage::disk('local')->path('edited/result.pdf'),
-            'pages' => 2,
-        ]);
+        ->andReturn(Storage::disk('local')->path('edited/out.pdf'));
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(1);
 
     $this->actingAs($this->user)
-        ->postJson(route('pdf.edit.store', $document), [
-            'texts' => [[
-                'page' => 1,
-                'rect' => [72, 700, 260, 730],
-                'text' => 'A note',
-                'size' => 12,
-                'color' => '#111827',
-            ]],
-        ])
-        ->assertOk()
-        ->assertJsonPath('status', 'completed');
-
-    $edited = Document::query()->where('operation_type', Document::OP_EDITED)->first();
-
-    expect($edited)->not->toBeNull()
-        ->and($edited->parent_document_id)->toBe($document->id)
-        ->and($edited->status)->toBe(Document::STATUS_COMPLETED)
-        ->and($edited->pages)->toBe(2)
-        ->and($edited->original_name)->toBe('brief-edited.pdf');
-
-    expect(Storage::disk('local')->exists('uploads/brief.pdf'))->toBeTrue();
-});
-
-it('returns the replacement overflow message and keeps the edit failed', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
-    ]);
-
-    $this->mock(PdfEditService::class)
-        ->shouldReceive('applyContent')
-        ->once()
-        ->andThrow(new PdfEditException('The replacement is longer than the selected line. Shorten it and try again.'));
-
-    $this->actingAs($this->user)
-        ->postJson(route('pdf.edit.store', $document), [
-            'replacements' => [[
-                'page' => 1,
-                'rects' => [[72, 80, 200, 100]],
-                'text' => 'This replacement is far too long for the selected line',
-                'size' => 16,
-            ]],
-        ])
-        ->assertStatus(422)
-        ->assertJsonPath('message', 'The replacement is longer than the selected line. Shorten it and try again.');
-
-    expect(Document::query()->where('operation_type', Document::OP_EDITED)->value('status'))
-        ->toBe(Document::STATUS_FAILED);
-});
-
-it('saves a separate page plan', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    Storage::disk('local')->put('edited/pages.pdf', '%PDF-1.4 pages');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
-        'pages' => 2,
-    ]);
-
-    $this->mock(PdfEditService::class)
-        ->shouldReceive('applyPages')
-        ->once()
-        ->andReturn([
-            'path' => Storage::disk('local')->path('edited/pages.pdf'),
-            'pages' => 3,
-        ]);
-
-    $this->actingAs($this->user)
-        ->postJson(route('pdf.edit.pages', $document), [
-            'pages' => [
-                ['source' => 2, 'rotate' => 90],
-                ['blank' => true, 'rotate' => 0],
-                ['source' => 1, 'rotate' => 0],
+        ->postJson(route('pdf.edit.store', $doc), [
+            'annotations' => [
+                [
+                    'type' => 'text',
+                    'page' => 1,
+                    'x' => 20,
+                    'y' => 40,
+                    'width' => 60,
+                    'text' => 'Hello',
+                    'font_size' => 12,
+                ],
             ],
         ])
-        ->assertOk()
-        ->assertJsonPath('status', 'completed');
+        ->assertRedirect();
 
-    expect(Document::query()->where('operation_type', Document::OP_EDITED)->value('pages'))->toBe(3);
+    $edited = Document::query()
+        ->where('operation_type', Document::OP_EDITED)
+        ->where('user_id', $this->user->id)
+        ->first();
+
+    expect($edited)->not->toBeNull()
+        ->and($edited->status)->toBe(Document::STATUS_COMPLETED)
+        ->and($edited->parent_document_id)->toBe($doc->id)
+        ->and((int) ($edited->metadata['annotation_count'] ?? 0))->toBe(1);
 });
 
-it('rejects an edit with nothing to apply', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
+it('fills form fields onto a new document', function () {
+    Storage::disk('local')->put('uploads/form.pdf', '%PDF-1.4');
+    Storage::disk('local')->put('edited/filled.pdf', '%PDF-1.4 filled');
+
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/form.pdf',
+    ]);
+
+    $this->mock(PdfFormFillService::class)
+        ->shouldReceive('fillFields')
+        ->once()
+        ->andReturn(Storage::disk('local')->path('edited/filled.pdf'));
+
+    $this->mock(PdfConversionService::class)
+        ->shouldReceive('countPages')
+        ->andReturn(1);
+
+    $this->actingAs($this->user)
+        ->postJson(route('pdf.edit.form', $doc), [
+            'fields' => [
+                [
+                    'name' => 'full_name',
+                    'type' => 'text',
+                    'page' => 1,
+                    'x' => 20,
+                    'y' => 50,
+                    'width' => 80,
+                    'height' => 10,
+                    'value' => 'Ada Lovelace',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $filled = Document::query()
+        ->where('operation_type', Document::OP_FORM_FILLED)
+        ->where('user_id', $this->user->id)
+        ->first();
+
+    expect($filled)->not->toBeNull()
+        ->and($filled->status)->toBe(Document::STATUS_COMPLETED)
+        ->and($filled->metadata['fields'][0]['value'] ?? null)->toBe('Ada Lovelace');
+});
+
+it('rejects empty annotation payloads', function () {
+    Storage::disk('local')->put('uploads/doc.pdf', '%PDF-1.4');
+    $doc = Document::factory()->uploaded()->for($this->user)->create([
+        'file_path' => 'uploads/doc.pdf',
     ]);
 
     $this->actingAs($this->user)
-        ->postJson(route('pdf.edit.store', $document), [])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('edit');
-});
-
-it('blocks another user and a guest from the editor', function () {
-    Storage::disk('local')->put('uploads/brief.pdf', '%PDF-1.4 test');
-    $document = Document::factory()->uploaded()->for($this->user)->create([
-        'file_path' => 'uploads/brief.pdf',
-    ]);
-    $other = User::factory()->create();
-
-    $this->actingAs($other)
-        ->get(route('pdf.edit.create', $document))
-        ->assertForbidden();
-
-    $this->postJson(route('pdf.edit.store', $document), [
-        'texts' => [[
-            'page' => 1,
-            'rect' => [10, 10, 80, 30],
-            'text' => 'Nope',
-        ]],
-    ])->assertForbidden();
+        ->postJson(route('pdf.edit.store', $doc), [
+            'annotations' => [],
+        ])
+        ->assertUnprocessable();
 });

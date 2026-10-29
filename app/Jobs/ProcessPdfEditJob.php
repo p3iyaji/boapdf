@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Document;
-use App\Services\PdfEditException;
+use App\Services\PdfConversionService;
 use App\Services\PdfEditService;
 use App\Support\DocumentsDisk;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,100 +17,74 @@ class ProcessPdfEditJob implements ShouldQueue
 
     public int $timeout = 600;
 
-    public int $tries = 1;
+    public int $tries = 2;
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  list<array<string, mixed>>  $annotations
      */
     public function __construct(
         public int $documentId,
         public int $sourceDocumentId,
-        public string $mode,
-        public array $payload,
+        public array $annotations,
     ) {}
 
-    public function handle(PdfEditService $editor): void
+    public function handle(PdfEditService $editor, PdfConversionService $conversion): void
     {
         $document = Document::query()->findOrFail($this->documentId);
         $source = Document::query()->whereKey($this->sourceDocumentId)->firstOrFail();
 
         if ($document->user_id !== null && $source->user_id !== null && $document->user_id !== $source->user_id) {
-            $this->markFailed($document, 'Could not edit this PDF.');
-
-            return;
+            throw new \RuntimeException('Edit source does not belong to the document owner.');
         }
 
         $absolutePath = null;
 
         try {
-            $result = $this->mode === 'pages'
-                ? $editor->applyPages($source->absolutePath(), $this->payload['pages'] ?? [])
-                : $editor->applyContent($source->absolutePath(), $this->payload);
+            $absolutePath = $editor->applyAnnotations($source->absolutePath(), $this->annotations);
+            $relativePath = 'edited/'.basename($absolutePath);
 
-            $absolutePath = $result['path'];
-            $relativePath = $this->relativePath($absolutePath);
-
-            $existing = $document->metadata instanceof \Traversable
-                ? iterator_to_array($document->metadata)
-                : [];
+            $pages = 0;
+            try {
+                $pages = $conversion->countPages($absolutePath);
+            } catch (Throwable) {
+                // ignore
+            }
 
             $document->update([
                 'file_path' => $relativePath,
                 'file_size' => DocumentsDisk::disk()->size($relativePath),
-                'pages' => $result['pages'],
+                'pages' => $pages,
                 'status' => Document::STATUS_COMPLETED,
                 'mime_type' => 'application/pdf',
-                'metadata' => [...$existing, 'mode' => $this->mode],
+                'metadata' => [
+                    'annotation_count' => count($this->annotations),
+                    'annotations' => collect($this->annotations)->map(fn (array $a): array => [
+                        'type' => $a['type'] ?? null,
+                        'page' => $a['page'] ?? null,
+                        'x' => $a['x'] ?? null,
+                        'y' => $a['y'] ?? null,
+                        'width' => $a['width'] ?? null,
+                    ])->all(),
+                ],
             ]);
-        } catch (PdfEditException $exception) {
-            $this->deleteOutput($absolutePath);
-            $this->markFailed($document, $exception->getMessage());
-        } catch (Throwable $exception) {
-            $this->deleteOutput($absolutePath);
-            Log::error('PDF edit job failed', [
-                'document_id' => $this->documentId,
-                'error' => $exception->getMessage(),
-            ]);
-            $this->markFailed($document, 'Could not edit this PDF.');
-        } finally {
-            $this->deleteAssets();
-        }
-    }
-
-    private function markFailed(Document $document, string $message): void
-    {
-        $document->update([
-            'status' => Document::STATUS_FAILED,
-            'metadata' => ['error' => $message, 'mode' => $this->mode],
-        ]);
-    }
-
-    private function relativePath(string $absolute): string
-    {
-        $root = rtrim(DocumentsDisk::disk()->path(''), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-
-        if (! str_starts_with($absolute, $root)) {
-            throw new PdfEditException('Could not edit this PDF.');
-        }
-
-        return ltrim(substr($absolute, strlen($root)), DIRECTORY_SEPARATOR);
-    }
-
-    private function deleteOutput(?string $absolutePath): void
-    {
-        if (is_string($absolutePath) && is_file($absolutePath)) {
-            unlink($absolutePath);
-        }
-    }
-
-    private function deleteAssets(): void
-    {
-        foreach ($this->payload['images'] ?? [] as $image) {
-            $path = $image['path'] ?? null;
-
-            if (is_string($path) && is_file($path)) {
-                unlink($path);
+        } catch (Throwable $e) {
+            if ($absolutePath !== null && file_exists($absolutePath)) {
+                @unlink($absolutePath);
             }
+            throw $e;
         }
+    }
+
+    public function failed(?Throwable $e): void
+    {
+        Log::error('PDF edit job failed', [
+            'document_id' => $this->documentId,
+            'error' => $e?->getMessage(),
+        ]);
+
+        Document::query()->whereKey($this->documentId)->update([
+            'status' => Document::STATUS_FAILED,
+            'metadata' => ['error' => 'Editing failed.'],
+        ]);
     }
 }

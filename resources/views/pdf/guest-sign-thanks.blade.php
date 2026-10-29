@@ -14,6 +14,9 @@
         <p class="mt-2 text-sm text-brand-800/80">
             {{ session('success', 'Your signature has been applied to the document. You can close this page.') }}
         </p>
+        <p class="mt-6 text-xs text-brand-800/55">
+            @include('partials.legal-links', ['linkClass' => 'hover:text-brand-900'])
+        </p>
     </div>
 </div>
 @endsection

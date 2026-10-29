@@ -19,16 +19,25 @@
         @csrf
 
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">Include in merge</h2>
-            <p class="text-xs text-gray-500 mt-1 mb-3">Click a row to add or remove it from the list below.</p>
-            <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
-                <template x-for="d in docs" :key="d.id">
+            <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-semibold text-gray-800">Include in merge</h2>
+                    <p class="mt-1 text-xs text-gray-500">Click a row to add or remove it from the list below.</p>
+                </div>
+                <label class="sr-only" for="merge-search">Search PDFs</label>
+                <input id="merge-search" type="search" x-model="query" placeholder="Search by name&hellip;"
+                       class="w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-56">
+            </div>
+            <div class="max-h-56 space-y-2 overflow-y-auto pr-1" role="listbox" aria-label="PDF documents">
+                <template x-for="d in filteredDocs" :key="d.id">
                     <button type="button"
+                            role="option"
+                            :aria-selected="inOrder(d.id)"
                             @click="toggle(d.id)"
                             class="flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition"
-                            :class="inOrder(d.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                            :class="inOrder(d.id) ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
                         <div class="min-w-0 flex-1 pr-2">
-                            <p class="font-medium text-gray-800 truncate" x-text="d.name"></p>
+                            <p class="truncate font-medium text-gray-800" x-text="d.name"></p>
                             <p class="text-xs text-gray-500"><span x-text="d.pages"></span> pages · <span x-text="d.size"></span></p>
                         </div>
                         <span class="shrink-0 text-xs font-semibold"
@@ -36,6 +45,10 @@
                               x-text="inOrder(d.id) ? ('#' + (order.indexOf(d.id) + 1)) : 'Add'"></span>
                     </button>
                 </template>
+                <p class="rounded-lg border border-dashed border-gray-200 py-6 text-center text-sm text-gray-500"
+                   x-show="filteredDocs.length === 0">
+                    No PDFs match your search.
+                </p>
             </div>
         </div>
 
@@ -109,8 +122,17 @@
         function mergeForm({ docs }) {
             return {
                 docs,
+                query: '',
                 order: [],
                 dragFrom: null,
+
+                get filteredDocs() {
+                    const q = this.query.trim().toLowerCase();
+                    if (!q) {
+                        return this.docs;
+                    }
+                    return this.docs.filter((d) => d.name.toLowerCase().includes(q));
+                },
 
                 inOrder(id) {
                     return this.order.includes(id);

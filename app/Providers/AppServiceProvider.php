@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
             $rule = Password::min(8)->letters();
 
             if (app()->isProduction()) {
-                return $rule->mixedCase()->numbers()->uncompromised();
+                return $rule->mixedCase()->numbers();
             }
 
             return $rule;

@@ -3,7 +3,7 @@
 #   cp .env.docker.example .env   # then set APP_KEY, MYSQL_*, passwords
 #   docker compose build
 #   docker compose up -d
-
+# App container runs migrate + db:seed on start (DB_SEED=true by default).
 x-app-environment: &app-environment
   DB_HOST: mysql
   DB_PORT: "3306"
@@ -30,6 +30,8 @@ services:
     environment:
       <<: *app-environment
       ROLE: app
+      # Idempotent seeders (admin + demo). Set DB_SEED=false in .env to skip.
+      DB_SEED: ${DB_SEED:-true}
     volumes:
       - pdf_storage:/var/www/html/storage/app/private
     depends_on:

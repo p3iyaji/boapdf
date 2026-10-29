@@ -9,6 +9,7 @@ use App\Support\DocumentsDisk;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ProcessPdfConvertJob implements ShouldQueue
@@ -77,10 +78,13 @@ class ProcessPdfConvertJob implements ShouldQueue
 
     public function failed(?Throwable $e): void
     {
+        $message = $e?->getMessage() ?? 'Conversion failed.';
+        $safeMessage = Str::limit(trim(preg_replace('/\s+/', ' ', $message) ?? ''), 500) ?: 'Conversion failed.';
+
         Log::error('PDF convert job failed', [
             'document_id' => $this->documentId,
             'target' => $this->target,
-            'error' => $e?->getMessage(),
+            'error' => $safeMessage,
         ]);
 
         ConversionLog::create([
@@ -89,12 +93,12 @@ class ProcessPdfConvertJob implements ShouldQueue
             'target_format' => $this->target,
             'processing_time_ms' => 0,
             'status' => 'failed',
-            'error_message' => 'Conversion failed.',
+            'error_message' => $safeMessage,
         ]);
 
         Document::query()->whereKey($this->documentId)->update([
             'status' => Document::STATUS_FAILED,
-            'metadata' => ['error' => 'Conversion failed.', 'target' => $this->target],
+            'metadata' => ['error' => $safeMessage, 'target' => $this->target],
         ]);
     }
 }
