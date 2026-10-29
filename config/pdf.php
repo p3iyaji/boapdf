@@ -26,6 +26,7 @@ return [
         'compressed',
         'signed',
         'converted',
+        'edited',
         'temp',
     ],
 

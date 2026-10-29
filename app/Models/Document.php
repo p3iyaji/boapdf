@@ -35,6 +35,8 @@ class Document extends Model
 
     public const OP_CAPTURE = 'capture';
 
+    public const OP_EDITED = 'edited';
+
     protected $fillable = [
         'user_id',
         'original_name',

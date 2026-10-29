@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompressController;
 use App\Http\Controllers\ConvertController;
+use App\Http\Controllers\EditController;
 use App\Http\Controllers\GuestSignatureController;
 use App\Http\Controllers\MergeController;
 use App\Http\Controllers\PasswordResetController;
@@ -75,6 +76,15 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{document}/stream', [PdfController::class, 'stream'])->name('stream');
         Route::get('/{document}/download', [PdfController::class, 'download'])->name('download');
         Route::delete('/{document}', [PdfController::class, 'destroy'])->name('destroy');
+
+        Route::get('/{document}/edit', [EditController::class, 'create'])->name('edit.create');
+        Route::post('/{document}/edit', [EditController::class, 'store'])
+            ->middleware('throttle:pdf-heavy')
+            ->name('edit.store');
+        Route::post('/{document}/edit/pages', [EditController::class, 'storePages'])
+            ->middleware('throttle:pdf-heavy')
+            ->name('edit.pages');
+        Route::get('/{document}/status', [EditController::class, 'status'])->name('status');
 
         Route::get('/{document}/sign', [SignatureController::class, 'create'])->name('sign.create');
         Route::post('/{document}/sign', [SignatureController::class, 'store'])

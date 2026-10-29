@@ -125,3 +125,37 @@
 #59 {main}
 "} 
 [2026-08-07 05:07:15] testing.ERROR: Signature invite cancel failed {"error":"Signed requests cannot be removed."} 
+[2026-10-03 01:02:30] testing.WARNING: PDF edit command failed {"output":"Traceback (most recent call last):
+  File \"/Users/pauliyaji/Herd/powerhouse/resources/conversion/pdf_edit.py\", line 16, in <module>
+    import fitz
+ModuleNotFoundError: No module named 'fitz'"} 
+[2026-10-03 01:02:30] testing.WARNING: PDF edit command failed {"output":"Traceback (most recent call last):
+  File \"/Users/pauliyaji/Herd/powerhouse/resources/conversion/pdf_edit.py\", line 16, in <module>
+    import fitz
+ModuleNotFoundError: No module named 'fitz'"} 
+[2026-10-03 01:02:31] testing.WARNING: PDF edit command failed {"output":"Traceback (most recent call last):
+  File \"/Users/pauliyaji/Herd/powerhouse/resources/conversion/pdf_edit.py\", line 16, in <module>
+    import fitz
+ModuleNotFoundError: No module named 'fitz'"} 
+[2026-10-03 01:02:31] testing.WARNING: PDF edit command failed {"output":"Traceback (most recent call last):
+  File \"/Users/pauliyaji/Herd/powerhouse/resources/conversion/pdf_edit.py\", line 16, in <module>
+    import fitz
+ModuleNotFoundError: No module named 'fitz'"} 
+[2026-10-03 01:03:05] testing.WARNING: PDF edit command failed {"output":"{\"error\": \"The replacement is longer than the selected line. Shorten it and try again.\"}"} 
+[2026-10-03 01:03:48] local.ERROR: The "--columns" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--columns\" option does not exist. at /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Input/ArgvInput.php:226)
+[stacktrace]
+#0 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Input/ArgvInput.php(153): Symfony\\Component\\Console\\Input\\ArgvInput->addLongOption('columns', 'method,uri,name')
+#1 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Input/ArgvInput.php(88): Symfony\\Component\\Console\\Input\\ArgvInput->parseLongOption('--columns=metho...')
+#2 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Input/ArgvInput.php(77): Symfony\\Component\\Console\\Input\\ArgvInput->parseToken('--columns=metho...', true)
+#3 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Input/Input.php(53): Symfony\\Component\\Console\\Input\\ArgvInput->parse()
+#4 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Command/Command.php(295): Symfony\\Component\\Console\\Input\\Input->bind(Object(Symfony\\Component\\Console\\Input\\InputDefinition))
+#5 /Users/pauliyaji/Herd/powerhouse/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#6 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Application.php(1117): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#7 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Application.php(356): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\RouteListCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 /Users/pauliyaji/Herd/powerhouse/vendor/symfony/console/Application.php(195): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#9 /Users/pauliyaji/Herd/powerhouse/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#10 /Users/pauliyaji/Herd/powerhouse/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#11 /Users/pauliyaji/Herd/powerhouse/artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#12 {main}
+"} 
+[2026-10-03 01:05:45] testing.WARNING: PDF edit command failed {"output":"{\"error\": \"The replacement is longer than the selected line. Shorten it and try again.\"}"} 
