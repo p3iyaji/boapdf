@@ -6,3 +6,4 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 @source '../../vendor/boa/theme/resources/views/**/*.blade.php';
+@source '../../vendor/boa/theme/src/**/*.php';

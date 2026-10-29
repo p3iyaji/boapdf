@@ -12,7 +12,7 @@
     @keydown.escape.window="sidebarOpen = false">
     {{-- Mobile top bar --}}
     <header
-        class="fixed left-0 right-0 top-0 z-50 border-b border-brand-950/50 bg-gradient-to-r from-brand-950 via-brand-900 to-canvas-950 pt-[env(safe-area-inset-top,0px)] shadow-lg shadow-brand-950/40 backdrop-blur-md lg:hidden">
+        class="fixed left-0 right-0 top-0 z-50 overflow-hidden border-b border-brand-950/50 bg-gradient-to-r from-brand-950 via-brand-900 to-canvas-950 pt-[env(safe-area-inset-top,0px)] shadow-lg shadow-brand-950/40 backdrop-blur-md lg:hidden">
         <div class="flex h-14 items-center gap-2 px-3">
             <button type="button"
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-accent-100/90 hover:bg-white/10 active:bg-white/15"
@@ -24,7 +24,7 @@
                 </svg>
             </button>
             <a href="{{ route('dashboard') }}" class="flex min-w-0 flex-1 items-center justify-center gap-2.5">
-                <x-boa-theme::mark size="sm" />
+                <x-boa-theme::mark size="sm" class="h-8 w-8" />
                 <span
                     class="truncate font-display text-base font-semibold tracking-wide text-accent-50">{{ config('app.name') }}</span>
             </a>
