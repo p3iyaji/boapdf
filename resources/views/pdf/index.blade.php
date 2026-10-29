@@ -366,6 +366,9 @@
                 </p>
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     @include('pdf._icon-actions', ['doc' => $doc, 'large' => true])
+                    @if ($doc->isFileReady() && $doc->mime_type === 'application/pdf')
+                        <a href="{{ route('pdf.edit.create', $doc) }}" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-blue-300 bg-blue-50 px-4 text-center text-sm font-semibold text-blue-900 hover:bg-blue-100 sm:flex-initial">Edit</a>
+                    @endif
                     <a href="{{ route('pdf.sign.create', $doc) }}" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-emerald-600 px-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 sm:flex-initial">Sign</a>
                 </div>
             </article>
@@ -416,6 +419,9 @@
                             <td class="px-4 py-3 lg:px-6 lg:py-4">
                                 <div class="flex flex-wrap items-center justify-end gap-1.5">
                                     @include('pdf._icon-actions', ['doc' => $doc, 'large' => false])
+                                    @if ($doc->isFileReady() && $doc->mime_type === 'application/pdf')
+                                        <a href="{{ route('pdf.edit.create', $doc) }}" class="inline-flex min-h-9 items-center justify-center rounded-lg border border-blue-300 bg-blue-50 px-3 text-xs font-semibold text-blue-900 hover:bg-blue-100 sm:text-sm">Edit</a>
+                                    @endif
                                     <a href="{{ route('pdf.sign.create', $doc) }}" class="inline-flex min-h-9 items-center justify-center rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 sm:text-sm">Sign</a>
                                 </div>
                             </td>
