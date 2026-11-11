@@ -21,7 +21,7 @@ class UploadPdfRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:pdf',
-                'max:'.(int) config('pdf.max_file_size', 51200),
+                'max:'.(int) config('pdf.max_file_size', 102400),
             ],
         ];
     }
