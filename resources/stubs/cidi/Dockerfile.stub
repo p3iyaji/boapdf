@@ -44,8 +44,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Configure PHP
 RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/memory.ini \
-    && echo "upload_max_filesize = 100M" >> /usr/local/etc/php/conf.d/upload.ini \
-    && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/upload.ini
+    && echo "upload_max_filesize = 128M" >> /usr/local/etc/php/conf.d/upload.ini \
+    && echo "post_max_size = 128M" >> /usr/local/etc/php/conf.d/upload.ini
 
 # Configure OPcache
 RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \

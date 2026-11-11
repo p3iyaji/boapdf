@@ -7,9 +7,9 @@ return [
     | File limits & cleanup
     |--------------------------------------------------------------------------
     |
-    | Laravel file validation "max" is in kilobytes (51200 ≈ 50 MB).
+    | Laravel file validation "max" is in kilobytes (102400 ≈ 100 MB).
     */
-    'max_file_size' => (int) env('PDF_MAX_FILE_SIZE', 51200),
+    'max_file_size' => (int) env('PDF_MAX_FILE_SIZE', 102400),
 
     'temp_cleanup_hours' => (int) env('PDF_TEMP_CLEANUP_HOURS', 24),
 

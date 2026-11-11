@@ -25,7 +25,7 @@ class LegalController extends Controller
             'operatorName' => config('legal.operator_name'),
             'retentionDays' => (int) config('pdf.upload_retention_days', 30),
             'tempCleanupHours' => (int) config('pdf.temp_cleanup_hours', 24),
-            'maxFileSizeKb' => (int) config('pdf.max_file_size', 51200),
+            'maxFileSizeKb' => (int) config('pdf.max_file_size', 102400),
         ]);
     }
 }

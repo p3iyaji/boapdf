@@ -128,6 +128,29 @@ it('includes the camera capture alpine helper in the library page', function () 
         ->assertSee('crop &amp; zoom for full-screen signing', false);
 });
 
+it('defaults the PDF upload limit to 100 MB', function () {
+    expect((int) config('pdf.max_file_size'))->toBe(102400);
+});
+
+it('accepts a PDF at the configured size limit', function () {
+    config(['pdf.max_file_size' => 100]);
+    $file = UploadedFile::fake()->create('large.pdf', 100, 'application/pdf');
+
+    $this->actingAs($this->user)
+        ->post(route('pdf.upload'), ['file' => $file])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+});
+
+it('rejects a PDF larger than the configured size limit', function () {
+    config(['pdf.max_file_size' => 100]);
+    $file = UploadedFile::fake()->create('huge.pdf', 101, 'application/pdf');
+
+    $this->actingAs($this->user)
+        ->post(route('pdf.upload'), ['file' => $file])
+        ->assertSessionHasErrors('file');
+});
+
 it('accepts a PDF upload and stores a document row', function () {
     $file = UploadedFile::fake()->create('contract.pdf', 50, 'application/pdf');
 
