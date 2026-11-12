@@ -23,6 +23,7 @@ return [
         'horizon*',
         '_boost/browser-logs',
         'livewire-*/livewire.js',
+        'pdf*',
     ],
 
     /*
@@ -47,7 +48,8 @@ return [
         'auth' => env('DEBUGBAR_COLLECTORS_AUTH', false),            // Display Laravel authentication status
         'gate' => env('DEBUGBAR_COLLECTORS_GATE', true),             // Display Laravel Gate checks
         'session' => env('DEBUGBAR_COLLECTORS_SESSION', false),         // Display session data
-        'symfony_request' => env('DEBUGBAR_COLLECTORS_SYMFONY_REQUEST', true),  // Default Request Data
+        // Dumping the Symfony request stringifies the body and OOMs on 100 MB PDFs.
+        'symfony_request' => env('DEBUGBAR_COLLECTORS_SYMFONY_REQUEST', false),
         'mail' => env('DEBUGBAR_COLLECTORS_MAIL', true),             // Catch mail messages
         'laravel' => env('DEBUGBAR_COLLECTORS_LARAVEL', true),          // Laravel version and environment
         'events' => env('DEBUGBAR_COLLECTORS_EVENTS', false),          // All events fired
