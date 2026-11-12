@@ -16,7 +16,7 @@ class CapturePdfRequest extends FormRequest
      */
     public function rules(): array
     {
-        $maxKb = min((int) config('pdf.max_file_size', 51200), 5120);
+        $maxKb = min((int) config('pdf.max_file_size', 102400), 5120);
 
         return [
             'title' => ['nullable', 'string', 'max:200'],
