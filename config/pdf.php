@@ -8,8 +8,20 @@ return [
     |--------------------------------------------------------------------------
     |
     | Laravel file validation "max" is in kilobytes (102400 ≈ 100 MB).
+    | PHP CLI (`artisan serve`) needs matching post_max_size / upload_max_filesize;
+    | those are PHP_INI_PERDIR and must be set when the built-in server starts.
     */
     'max_file_size' => (int) env('PDF_MAX_FILE_SIZE', 102400),
+
+    'php_memory_limit' => env('PDF_PHP_MEMORY_LIMIT', '512M'),
+
+    'php_post_max_size' => env('PDF_PHP_POST_MAX_SIZE', '128M'),
+
+    'php_upload_max_filesize' => env('PDF_PHP_UPLOAD_MAX_FILESIZE', '128M'),
+
+    'php_max_execution_time' => env('PDF_PHP_MAX_EXECUTION_TIME', '300'),
+
+    'php_max_input_time' => env('PDF_PHP_MAX_INPUT_TIME', '300'),
 
     'temp_cleanup_hours' => (int) env('PDF_TEMP_CLEANUP_HOURS', 24),
 
